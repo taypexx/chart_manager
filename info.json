@@ -1,0 +1,21 @@
+{
+	"name": "Blue Quartz",
+	"name_romanized": "",
+	"author": "LuzeriA",
+	"bpm": "160",
+	"scene": "scene_01",
+	"searchTags": [],
+	"levelDesigner": "taypex",
+	"levelDesigner1": "taypex",
+	"levelDesigner2": "taypex",
+	"levelDesigner3": "taypex",
+	"levelDesigner4": "taypex",
+	"difficulty1": "9",
+	"difficulty2": "11",
+	"difficulty3": "0",
+	"difficulty4": "0",
+	"hideBmsMode": "CLICK",
+	"hideBmsDifficulty": "0",
+	"hideBmsMessage": "",
+	"unlockLevel": "0"
+}
