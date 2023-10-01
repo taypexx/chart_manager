@@ -1,0 +1,21 @@
+{
+	"name": "%s",
+	"name_romanized": "%s",
+	"author": "%s",
+	"bpm": "%s",
+	"scene": "%s",
+	"searchTags": [],
+	"levelDesigner": "%s",
+	"levelDesigner1": "%s",
+	"levelDesigner2": "%s",
+	"levelDesigner3": "%s",
+	"levelDesigner4": "%s",
+	"difficulty1": "%s",
+	"difficulty2": "%s",
+	"difficulty3": "%s",
+	"difficulty4": "%s",
+	"hideBmsMode": "CLICK",
+	"hideBmsDifficulty": "0",
+	"hideBmsMessage": "balls",
+	"unlockLevel": "0"
+}
