@@ -4,4 +4,4 @@ Chart manager programm helps you generate template files for your chart and pack
 ## Build
 To build the program you will need LuaRT. However, there is a folder with precompiled executable, just put it in some folder. Make sure it has access to lua54.dll, icon.ico, template and assets folders.
 ## Contact
-My Discord: @taypexx
+My Discord: '@taypexx'
