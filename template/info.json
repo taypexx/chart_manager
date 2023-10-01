@@ -16,6 +16,6 @@
 	"difficulty4": "%s",
 	"hideBmsMode": "CLICK",
 	"hideBmsDifficulty": "0",
-	"hideBmsMessage": "balls",
+	"hideBmsMessage": "%s",
 	"unlockLevel": "0"
 }
