@@ -51,7 +51,7 @@ box_charter.fontsize = 12
 
 local title_scene = ui.Label(win,"Scene",25,225,175,35)
 title_scene.fontsize = 18
-local list_scene = ui.Combobox(win,{"scene_01 (Space Station)","scene_02 (Retrocity)","scene_03 (Castle)","scene_04 (Rainy Night)","scene_05 (Candyland)","scene_06 (Oriental)","scene_07 (Let's Groove)","scene_08 (Touhou)","scene_09 (DJMAX)","scene_10 (Miku Scene)"},
+local list_scene = ui.Combobox(win,{"scene_01 (Space Station)","scene_02 (Retrocity)","scene_03 (Castle)","scene_04 (Rainy Night)","scene_05 (Candyland)","scene_06 (Oriental)","scene_07 (Let's Groove)","scene_08 (Touhou)","scene_09 (DJMAX)"},
 250,225,225,150)
 list_scene.fontsize = 14
 
