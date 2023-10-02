@@ -297,6 +297,17 @@ bg:toback(credits)
 
 ---------------------------------------
 
+local forbidden_chars = {"{","}",'"'}
+
+local function check_for_chars(str)
+    for _,char in pairs(forbidden_chars) do
+        if string.find(str,char) then
+            return false,char
+        end
+    end
+    return true
+end
+
 function generate_chart()
     --// Generate chart files
 
@@ -311,6 +322,33 @@ function generate_chart()
     end
     if not selectedFiles.music then
         return false,"You need to pick the music audio!"
+    end
+
+    win:status("> Checking for foridden characters in info.json...")
+
+    local info_format = {
+        box_chartname.text,
+        box_chartname_rom.text,
+        box_artist.text,
+        box_bpm.text,
+        string.sub(list_scene.text,1,8),
+        box_charter.text,
+        box_charter.text,
+        box_charter.text,
+        box_charter.text,
+        box_charter.text,
+        box_map1_diff.text,
+        box_diff.text,
+        box_map3_diff.text,
+        box_map4_diff.text,
+        box_secret_msg.text
+    }
+
+    for _,formatstr in pairs(info_format) do
+        local allowed,char = check_for_chars(formatstr)
+        if not allowed then
+            return false,'Character '..char..' is not allowed.'
+        end
     end
 
     win:status("> Loading selected files...")
@@ -343,8 +381,6 @@ function generate_chart()
         cinemaTemplate:close()
     end
 
-    win:status("> Loading template files...")
-
     os.execute('copy "'..corepath..'/template" "'..targetdir..'"')
 
     local infoFile = io.open(targetdir.."/info.json","r")
@@ -357,23 +393,9 @@ function generate_chart()
         return false,"Couldn't read info.json!"
     end
 
-    info = string.format(info,
-        box_chartname.text,
-        box_chartname_rom.text,
-        box_artist.text,
-        box_bpm.text,
-        string.sub(list_scene.text,1,8),
-        box_charter.text,
-        box_charter.text,
-        box_charter.text,
-        box_charter.text,
-        box_charter.text,
-        box_map1_diff.text,
-        box_diff.text,
-        box_map3_diff.text,
-        box_map4_diff.text,
-        box_secret_msg.text
-    )
+    win:status("> Loading template files...")
+
+    info = string.format(info,table.unpack(info_format))
 
     infoFile = io.open(targetdir.."/info.json","w")
     if not infoFile then
