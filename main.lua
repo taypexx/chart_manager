@@ -6,7 +6,7 @@ local corepath = sys.currentdir
 local targetdir = nil
 
 --// UI
-local win = ui.Window("Chart Manager", "fixed", 1000, 730)
+local win = ui.Window("Chart Manager", "single", 1000, 730)
 win:loadicon(corepath.."/icon.ico")
 win.bgcolor = 0x0d1f30
 win.font = "Tahoma"
