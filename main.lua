@@ -129,7 +129,7 @@ win.menu:insert(3, "Edit BMS", ui.Menu("map1", "map2", "map3", "map4")).submenu.
 
     local launch_cmd = string.format('""%s" "%s"',settings.bms_editor,map_path)
     win:status("> Editing "..map_name.."...")
-    os.execute(launch_cmd)
+    sys.cmd(launch_cmd)
     win:status("> Idle")
 end
 
@@ -164,7 +164,7 @@ local function offset_track(item)
 
     local launch_cmd = string.format('""%s" "%s"',settings.music_offset,track_path)
     win:status("> Offsetting "..track_name.."...")
-    os.execute(launch_cmd)
+    sys.cmd(launch_cmd)
     win:status("> Idle")
 end
 
