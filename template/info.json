@@ -14,7 +14,7 @@
 	"difficulty2": "%s",
 	"difficulty3": "%s",
 	"difficulty4": "%s",
-	"hideBmsMode": "CLICK",
+	"hideBmsMode": "%s",
 	"hideBmsDifficulty": "0",
 	"hideBmsMessage": "%s",
 	"unlockLevel": "0"

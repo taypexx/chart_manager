@@ -1,25 +1,200 @@
 local json = require("json")
+local utils = require("utils")
 local compression = require("compression")
-local ui = require "ui"
+local ui = require("ui")
+local net = require("net")
 
 local corepath = sys.currentdir
 local targetdir = nil
 
---// UI
-local win = ui.Window("Chart Manager", "single", 1000, 730)
+--// Updater
+
+local version_file = io.open(corepath.."/version","r")
+if version_file then
+    version = version_file:read("a")
+    version_file:close()
+
+    pcall(coroutine.wrap(function()
+        net.Http("https://raw.githubusercontent.com"):get("/taypexx/chart_manager/main/version").after = function (client, response)
+            local available_version
+            if response.status ~= 200 then
+                available_version = "v1.0.1"
+            else
+                available_version = response.content
+            end
+            available_version = string.sub(available_version,2)
+            local ver = string.sub(version,2)
+
+            local avail_v,current_v = "",""
+            for number in string.gmatch(available_version,"%d+") do
+                avail_v = avail_v..number
+            end
+            for number in string.gmatch(ver,"%d+") do
+                current_v = current_v..number
+            end
+            
+            if tonumber(avail_v) > tonumber(current_v) then
+                local result = ui.confirm(string.format("New version of the program is available (v%s). Would you like to download it?",available_version),"New version available")
+                if result == "yes" then
+                    os.execute([[explorer "https://github.com/taypexx/chart_manager/releases/"]])
+                end
+            end
+        end
+    end))
+end
+
+--// Loading settings
+
+local settings_file = io.open(corepath.."/settings.json","r")
+local settings
+if settings_file then
+    settings = json.parse(settings_file:read("a"))
+    if not settings or settings == {} then
+        settings = {
+            music_offset = "",
+            bms_editor = "",
+        }
+    end
+    settings_file:close()
+end
+
+local function saveSettings()
+    settings_file = io.open(corepath.."/settings.json","w")
+    if settings_file then
+        settings_file:write(json.stringify(settings) or {})
+        settings_file:close()
+        print("Saved settings")
+    else print("Couldn't save settings!") end
+end
+
+--// Window configuration
+
+local win = ui.Window("Chart Manager "..version, "single", 1000, 745)
 win:loadicon(corepath.."/icon.ico")
 win.bgcolor = 0x0d1f30
-win.font = "Tahoma"
+win.font = "Calibri"
 win.fontstyle = {["bold"] = true}
 win:center()
 win:status("> Idle")
+
+function win:onClose()
+    saveSettings()
+end
+
+--// Window menu
+
+local win_menu = ui.Menu("Offset music", "Offset demo","Select BMS program","Select offset program","Open info.json","Exit")
+win.menu = win_menu
+
+local function select_BMS_programm()
+    local editor = ui.opendialog("Select BMS editor program",false,"Executable file (*.exe)|*.exe")
+    if not editor then return end
+    settings.bms_editor = editor.fullpath
+    saveSettings()
+    return true
+end
+
+local function select_offset_programm()
+    local editor = ui.opendialog("Select offset editor program",false,"Executable files (*.exe)|*.exe")
+    if not editor then return end
+    settings.music_offset = editor.fullpath
+    saveSettings()
+    return true
+end
+
+--// BMS editing
+
+win.menu:insert(3, "Edit BMS", ui.Menu("map1", "map2", "map3", "map4")).submenu.onClick = function (self,item)
+    if not targetdir then
+        ui.error("You need to select chart folder!","Failed to edit")
+        return
+    end
+
+    if settings.bms_editor == "" or not settings.bms_editor then
+        local result = ui.confirm("You didn't select BMS editor program. Would you like to do it?","No BMS editor found")
+        if result == "yes" then
+            local selected = select_BMS_programm()
+            if not selected then return end
+        else return end
+    end
+
+    local map_name = item.text
+    local map_path = targetdir.."\\"..map_name..".bms"
+    local map_file = io.open(map_path,"r")
+    if not map_file then
+        ui.error(string.format("No %s file was found in chart folder!",map_name),"Failed to edit")
+        return
+    end
+    map_file:close()
+
+    local launch_cmd = string.format('""%s" "%s"',settings.bms_editor,map_path)
+    win:status("> Editing "..map_name.."...")
+    os.execute(launch_cmd)
+    win:status("> Idle")
+end
+
+--// Offset editing
+
+local function offset_track(item)
+    if not targetdir then
+        ui.error("You need to select chart folder!","Failed to offset")
+        return
+    end
+
+    if settings.music_offset == "" or not settings.music_offset then
+        local result = ui.confirm("You didn't select a program for music offsetting. Would you like to do it?","No offset program found")
+        if result == "yes" then
+            local selected = select_offset_programm()
+            if not selected then return end
+        else return end
+    end
+
+    local track_name = string.sub(item.text,8)
+    local track_path = string.format("%s/%s.ogg",targetdir,track_name)
+    local track = io.open(track_path,"r")
+    if not track then
+        track_path = string.format("%s/%s.mp3",targetdir,track_name)
+        track = io.open(track_path,"r")
+    end
+    if not track then
+        ui.error(string.format("No %s file was found in chart folder!",track_name),"Failed to offset")
+        return
+    end
+    track:close()
+
+    local launch_cmd = string.format('""%s" "%s"',settings.music_offset,track_path)
+    win:status("> Offsetting "..track_name.."...")
+    os.execute(launch_cmd)
+    win:status("> Idle")
+end
+
+--// Menu setup
+
+win.menu.items[1].onClick = offset_track
+win.menu.items[2].onClick = offset_track
+win.menu.items[4].onClick = select_BMS_programm
+win.menu.items[5].onClick = select_offset_programm
+win.menu.items[6].onClick = function ()
+    if not targetdir then
+        ui.error("You need to select chart folder!","Failed to open")
+        return
+    end
+    os.execute(string.format([["%s"]],targetdir.."\\info.json"))
+end
+win.menu.items[7].onClick = function ()
+    sys.exit()
+end
 
 --[[
 win:loadtrayicon("./icon.ico")
 win.traytooltip = "Chart Manager"
 ]]
 
-local bg = ui.Picture(win,"./assets/bg.png",0,0)
+--// UI
+
+local selectedFiles = {}
+
+local bg = ui.Picture(win,corepath.."/assets/bg.png",0,0)
 local bg_ratio = (bg.width/bg.height)
 local bg_width,bg_height
 if win.width < win.height then
@@ -37,23 +212,6 @@ local pack_button = ui.Button(win, "Pack files to MDM", 250,650,175,35)
 local load_button = ui.Button(win, "Generate chart files", 25,650,175,35)
 bg:toback(pack_button)
 bg:toback(load_button)
-
-local title_dir = ui.Label(win,"Chart folder",25,600,175,35)
-title_dir.fontsize = 18
-title_dir.fgcolor = 0xFFFFFF
-
-bg:toback(title_dir)
-local choose_dir = ui.Button(win,"Click to browse directory",250,600,225,35)
-choose_dir.fontsize = 10
-bg:toback(choose_dir)
-
-function choose_dir:onClick()
-    local dir = ui.dirdialog("Select chart folder")
-    if dir then
-        targetdir = dir.fullpath
-        choose_dir.text = targetdir
-    end
-end
 
 local title_chartname = ui.Label(win,"Name",25,25,175,35)
 title_chartname.fontsize = 18
@@ -137,8 +295,6 @@ list_notespeed.fontstyle = {["bold"] = false}
 list_notespeed.text = "Speed 3"
 bg:toback(list_notespeed)
 
-local selectedFiles = {}
-
 local title_demo = ui.Label(win,"Demo",525,25,175,35)
 title_demo.fontsize = 18
 title_demo.fgcolor = 0xFFFFFF
@@ -148,9 +304,10 @@ choose_demo.fontsize = 10
 bg:toback(choose_demo)
 
 function choose_demo:onClick()
-    selectedFiles.demo = ui.opendialog("Select a Demo music file", false, "OGG (*.ogg)|*.ogg|MP3 (*.mp3)|*.mp3")
+    selectedFiles.demo = ui.opendialog("Select a Demo music file", false, "MP3 or OGG music|*.mp3;*.ogg")
     if selectedFiles.demo then
         choose_demo.text = selectedFiles.demo.name
+        choose_demo.fontsize = 7
     end
 end
 
@@ -163,9 +320,10 @@ choose_music.fontsize = 10
 bg:toback(choose_music)
 
 function choose_music:onClick()
-    selectedFiles.music = ui.opendialog("Select the main music file", false, "OGG (*.ogg)|*.ogg|MP3 (*.mp3)|*.mp3")
+    selectedFiles.music = ui.opendialog("Select the main music file", false, "MP3 or OGG music|*.mp3;*.ogg")
     if selectedFiles.music then
         choose_music.text = selectedFiles.music.name
+        choose_music.fontsize = 7
     end
 end
 
@@ -178,9 +336,10 @@ choose_cover.fontsize = 10
 bg:toback(choose_cover)
 
 function choose_cover:onClick()
-    selectedFiles.cover = ui.opendialog("Select a Cover image file", false, "PNG (*.png)|*.png|GIF (*.gif)|*.gif")
+    selectedFiles.cover = ui.opendialog("Select a Cover image file", false, "PNG or GIF image|*.png;*.gif")
     if selectedFiles.cover then
         choose_cover.text = selectedFiles.cover.name
+        choose_cover.fontsize = 7
     end
 end
 
@@ -193,9 +352,10 @@ choose_video.fontsize = 10
 bg:toback(choose_video)
 
 function choose_video:onClick()
-    selectedFiles.video = ui.opendialog("Select the cinema video file", false, "MP4 (*.mp4)|*.mp4")
+    selectedFiles.video = ui.opendialog("Select the cinema video file", false, "MP4 video|*.mp4")
     if selectedFiles.video then
         choose_video.text = selectedFiles.video.name
+        choose_video.fontsize = 7
     end
 end
 
@@ -208,7 +368,7 @@ box_video_opacity.fontsize = 18
 box_video_opacity.fontstyle = {["bold"] = false}
 bg:toback(box_video_opacity)
 
-local title_gen_bms1 = ui.Label(win,"Add map1.bms?",525,425,175,35)
+local title_gen_bms1 = ui.Label(win,"map1.bms",525,425,175,35)
 title_gen_bms1.fontsize = 18
 title_gen_bms1.fgcolor = 0xFFFFFF
 bg:toback(title_gen_bms1)
@@ -220,7 +380,7 @@ check_map1.fontstyle = {["bold"] = false}
 check_map1.fgcolor = 0xFFFFFF
 bg:toback(check_map1)
 
-local title_gen_bms3 = ui.Label(win,"Add map3.bms?",525,475,175,35)
+local title_gen_bms3 = ui.Label(win,"map3.bms",525,475,175,35)
 title_gen_bms3.fontsize = 18
 title_gen_bms3.fgcolor = 0xFFFFFF
 bg:toback(title_gen_bms3)
@@ -232,7 +392,7 @@ check_map3.fontstyle = {["bold"] = false}
 check_map3.fgcolor = 0xFFFFFF
 bg:toback(check_map3)
 
-local title_gen_bms4 = ui.Label(win,"Add map4.bms?",525,525,175,35)
+local title_gen_bms4 = ui.Label(win,"map4.bms",525,525,175,35)
 title_gen_bms4.fontsize = 18
 title_gen_bms4.fgcolor = 0xFFFFFF
 bg:toback(title_gen_bms4)
@@ -277,16 +437,28 @@ box_map4_diff.fgcolor = 0xFFFFFF
 box_map4_diff.fontstyle = {["bold"] = false}
 bg:toback(box_map4_diff)
 
-local title_secret_msg = ui.Label(win,"hideBmsMessage",525,600,175,35)
+local title_secret_msg = ui.Label(win,"hideBmsMessage",525,325,175,35)
 title_secret_msg.fontsize = 18
 title_secret_msg.fgcolor = 0xFFFFFF
 bg:toback(title_secret_msg)
 
-local box_secret_msg = ui.Entry(win,"",750,600,225,35)
-box_secret_msg.tooltip = "Hidden message for map4.bms"
+local box_secret_msg = ui.Entry(win,"",750,325,225,35)
+box_secret_msg.tooltip = "Hidden message for map4"
 box_secret_msg.fontsize = 18
 box_secret_msg.fontstyle = {["bold"] = false}
 bg:toback(box_secret_msg)
+
+local title_hide_mode = ui.Label(win,"hideBmsMode",525,275,175,35)
+title_hide_mode.fontsize = 18
+title_hide_mode.fgcolor = 0xFFFFFF
+bg:toback(title_hide_mode)
+
+local list_hide_mode = ui.Combobox(win,{"CLICK","PRESS","TOGGLE"},750,275,225,200)
+list_hide_mode.tooltip = "Type for accessing map4"
+list_hide_mode.fontsize = 18
+list_hide_mode.fontstyle = {["bold"] = false}
+list_hide_mode.text = "CLICK"
+bg:toback(list_hide_mode)
 
 local credits = ui.Label(win,"Program made by @taypexx",800,685,175,25)
 credits.tooltip = "Feel free to contact me in discord! =3"
@@ -295,7 +467,155 @@ credits.fgcolor = 0x6e6e6e
 credits.bgcolor = 0x292929
 bg:toback(credits)
 
+local title_dir = ui.Label(win,"Chart folder",25,600,175,35)
+title_dir.fontsize = 18
+title_dir.fgcolor = 0xFFFFFF
+
+bg:toback(title_dir)
+local choose_dir = ui.Button(win,"Click to browse directory",250,600,225,35)
+choose_dir.fontsize = 10
+bg:toback(choose_dir)
+
+--// Fields managing
+
+local default_button_size = {x=225,y=35}
+local function clearFields()
+    selectedFiles = {}
+    box_chartname.text = ""
+    box_chartname_rom.text = ""
+    box_artist.text = ""
+    box_bpm.text = "100"
+    box_charter.text = ""
+    list_scene.selected = list_scene.items[1]
+    box_diff.text = "?"
+    box_map1_diff.text = "0"
+    box_map3_diff.text = "0"
+    box_map4_diff.text = "0"
+    box_video_opacity.text = "0.5"
+    list_hide_mode.text = "CLICK"
+    box_secret_msg.text = ""
+    list_notespeed.selected = list_notespeed.items[3]
+    check_map1.text = "No"
+    check_map3.text = "No"
+    check_map4.text = "No"
+    load_button.enabled = true
+    choose_demo.text = "Click to choose demo"
+    choose_music.text = "Click to choose music"
+    choose_cover.text = "Click to choose an image"
+    choose_video.text = "Click to choose video"
+    choose_demo.enabled = true
+    choose_music.enabled = true
+    choose_cover.enabled = true
+    choose_video.enabled = true
+    choose_demo.width = default_button_size.x
+    choose_demo.height = default_button_size.y
+    choose_music.width = default_button_size.x
+    choose_music.height = default_button_size.y
+    choose_cover.width = default_button_size.x
+    choose_cover.height = default_button_size.y
+    choose_video.width = default_button_size.x
+    choose_video.height = default_button_size.y
+    choose_demo.fontsize = 10
+    choose_music.fontsize = 10
+    choose_cover.fontsize = 10
+    choose_video.fontsize = 10
+end
+
+clearFields()
+
+local function autofill_fields()
+
+    if box_chartname.text ~= "" then
+        if ui.confirm("Erase all fields?","Erase") == "yes" then
+            clearFields()
+        end
+    else clearFields() end
+
+    local info_file = io.open(targetdir.."/info.json","r")
+    if not info_file then return end
+    local chart_info = info_file:read("a")
+    info_file:close()
+    if not chart_info then return end
+    success,chart_info = pcall(json.parse,chart_info)
+    if not success then print(chart_info) return end
+    if not chart_info then return end
+
+    local bms_main = io.open(targetdir.."/map2.bms","r")
+    if not bms_main then return end
+    local bms_info = bms_main:read("a")
+    bms_main:close()
+    if not bms_info then return end
+    
+    box_chartname.text = chart_info.name
+    box_chartname_rom.text = chart_info.name_romanized
+    box_artist.text = chart_info.author
+    box_bpm.text = chart_info.bpm
+    box_charter.text = chart_info.levelDesigner
+    list_scene.selected = list_scene.items[string.sub(chart_info.scene,7)]
+    box_diff.text = chart_info.difficulty2
+    box_map1_diff.text = chart_info.difficulty1
+    box_map3_diff.text = chart_info.difficulty3
+    box_map4_diff.text = chart_info.difficulty4
+    list_hide_mode.text = chart_info.hideBmsMode
+    box_secret_msg.text = chart_info.hideBmsMessage
+
+    local chart_notespeed = string.sub(utils.split(bms_info,"#")[2],8)
+    list_notespeed.selected = list_notespeed.items[chart_notespeed]
+
+    choose_demo.text = "-"
+    choose_music.text = "-"
+    choose_cover.text = "-"
+    choose_video.text = "-"
+    choose_demo.enabled = false
+    choose_music.enabled = false
+    choose_cover.enabled = false
+    choose_video.enabled = false
+
+    if box_map1_diff.text ~= "0" then
+        check_map1.text = "Yes"
+    else
+        check_map1.text = "No"
+    end
+    if box_map3_diff.text ~= "0" then
+        check_map3.text = "Yes"
+    else
+        check_map3.text = "No"
+    end
+    if box_map4_diff.text ~= "0" then
+        check_map4.text = "Yes"
+    else
+        check_map4.text = "No"
+    end
+
+    local cinema_file = io.open(targetdir.."/cinema.json","r")
+    if cinema_file then
+        local cinema_info = cinema_file:read("a")
+        cinema_file:close()
+        if cinema_info then
+            success,cinema_info = pcall(json.parse,cinema_info)
+            if success and cinema_info then
+                local opacity = utils.split(tostring(cinema_info.opacity),",")
+                box_video_opacity.text = opacity[1].."."..opacity[2]
+            end
+        end
+    end
+
+    load_button.enabled = false
+end
+
+function choose_dir:onClick()
+    local dir = ui.dirdialog("Select chart folder")
+    if dir then
+        targetdir = dir.fullpath
+        choose_dir.fontsize = 6
+        choose_dir.text = targetdir
+        autofill_fields()
+    end
+end
+
 ---------------------------------------
+
+--// Main functions
 
 local forbidden_chars = {"{","}",'"'}
 
@@ -341,6 +661,7 @@ function generate_chart()
         box_diff.text,
         box_map3_diff.text,
         box_map4_diff.text,
+        list_hide_mode.text,
         box_secret_msg.text
     }
 
@@ -646,6 +967,8 @@ end
 
 ---------------------------------------
 
+--// Bindings
+
 function pack_button:onClick()
     local success,msg = chart_pack()
     msg = msg or "Unknown error occured"
@@ -663,6 +986,15 @@ function load_button:onClick()
     local success,msg = generate_chart()
     msg = msg or "Unknown error occured"
     if success then
+        load_button.enabled = false
+        choose_demo.text = "-"
+        choose_music.text = "-"
+        choose_cover.text = "-"
+        choose_video.text = "-"
+        choose_demo.enabled = false
+        choose_music.enabled = false
+        choose_cover.enabled = false
+        choose_video.enabled = false
         win:status("> Done!")
         ui.msg(msg,"Success")
     else 
