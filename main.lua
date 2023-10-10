@@ -36,7 +36,7 @@ if version_file then
             if tonumber(avail_v) > tonumber(current_v) then
                 local result = ui.confirm(string.format("New version of the program is available (v%s). Would you like to download it?",available_version),"New version available")
                 if result == "yes" then
-                    os.execute([[explorer "https://github.com/taypexx/chart_manager/releases/"]])
+                    sys.cmd([[explorer "https://github.com/taypexx/chart_manager/releases/"]])
                 end
             end
         end
@@ -128,9 +128,11 @@ win.menu:insert(3, "Edit BMS", ui.Menu("map1", "map2", "map3", "map4")).submenu.
     map_file:close()
 
     local launch_cmd = string.format('""%s" "%s"',settings.bms_editor,map_path)
-    win:status("> Editing "..map_name.."...")
-    sys.cmd(launch_cmd)
-    win:status("> Idle")
+    coroutine.wrap(function ()
+        win:status("> Editing "..map_name.."...")
+        sys.cmd(launch_cmd)
+        win:status("> Idle")
+    end)()
 end
 
 --// Offset editing
@@ -163,9 +165,11 @@ local function offset_track(item)
     track:close()
 
     local launch_cmd = string.format('""%s" "%s"',settings.music_offset,track_path)
-    win:status("> Offsetting "..track_name.."...")
-    sys.cmd(launch_cmd)
-    win:status("> Idle")
+    coroutine.wrap(function ()
+        win:status("> Offsetting "..track_name.."...")
+        sys.cmd(launch_cmd)
+        win:status("> Idle")
+    end)()
 end
 
 --// Menu setup
@@ -179,9 +183,36 @@ win.menu.items[6].onClick = function ()
         ui.error("You need to select chart folder!","Failed to open")
         return
     end
-    os.execute(string.format([["%s"]],targetdir.."\\info.json"))
+    coroutine.wrap(function (...)
+        win:status("> Viewing info.json...")
+        sys.cmd(string.format([["%s"]],targetdir.."\\info.json"))
+        win:status("> Idle")
+    end)()
 end
-win.menu.items[7].onClick = function ()
+
+local docs = {
+    ["Muse Dash Charting Tips"] = "", 
+    ["Understanding Muse Dash Chart Structure"] = "", 
+    ["Offsetting Charts With Adobe Audition (AU)"] = "", 
+    ["Quick MDBMSC Setup Guide"] = "https://docs.google.com/document/d/1wYgaUv_sX6IxUv-KjiRRv68Jg82xH0GG21ySRs8zigk/preview"
+}
+local docs_ind = {}
+for i,_ in pairs(docs) do
+    table.insert(docs_ind,i)
+end
+win.menu:insert(7, "Help", ui.Menu(table.unpack(docs_ind))).submenu.onClick = function (self,item)
+    local doc_dir = docs[item.text]
+    if not doc_dir then return end
+    coroutine.wrap(function ()
+        if doc_dir == "" then
+            sys.cmd(string.format('""%s" "%s"',"explorer",corepath.."\\assets\\"..item.text..".pdf"))
+        else
+            sys.cmd(string.format([[explorer "%s"]],doc_dir))
+        end
+    end)()
+end
+
+win.menu.items[8].onClick = function ()
     sys.exit()
 end
 
@@ -546,21 +577,21 @@ local function autofill_fields()
     bms_main:close()
     if not bms_info then return end
     
-    box_chartname.text = chart_info.name
-    box_chartname_rom.text = chart_info.name_romanized
-    box_artist.text = chart_info.author
-    box_bpm.text = chart_info.bpm
-    box_charter.text = chart_info.levelDesigner
-    list_scene.selected = list_scene.items[string.sub(chart_info.scene,7)]
-    box_diff.text = chart_info.difficulty2
-    box_map1_diff.text = chart_info.difficulty1
-    box_map3_diff.text = chart_info.difficulty3
-    box_map4_diff.text = chart_info.difficulty4
-    list_hide_mode.text = chart_info.hideBmsMode
-    box_secret_msg.text = chart_info.hideBmsMessage
+    box_chartname.text = chart_info.name or ""
+    box_chartname_rom.text = chart_info.name_romanized or ""
+    box_artist.text = chart_info.author or ""
+    box_bpm.text = chart_info.bpm or "100"
+    box_charter.text = chart_info.levelDesigner or ""
+    list_scene.selected = list_scene.items[tonumber(string.sub(chart_info.scene,7)) or 1]
+    box_diff.text = chart_info.difficulty2 or "?"
+    box_map1_diff.text = chart_info.difficulty1 or "0"
+    box_map3_diff.text = chart_info.difficulty3 or "0"
+    box_map4_diff.text = chart_info.difficulty4 or "0"
+    list_hide_mode.text = chart_info.hideBmsMode or "CLICK"
+    box_secret_msg.text = chart_info.hideBmsMessage or ""
 
     local chart_notespeed = string.sub(utils.split(bms_info,"#")[2],8)
-    list_notespeed.selected = list_notespeed.items[chart_notespeed]
+    list_notespeed.selected = list_notespeed.items[tonumber(chart_notespeed) or 3]
 
     choose_demo.text = "-"
     choose_music.text = "-"
