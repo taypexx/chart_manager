@@ -7,17 +7,21 @@ Chart manager is a program that helps you create and edit any charts for Muse Da
 ## Making charts
 
 Before making charts you need to select a chart folder:
+
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/190d4fef-7420-4391-8319-6042daab68d1)
 
 ### Creating
 
 Fill these fields for your chart and select files for it:
+
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/e93efc7f-baaf-4d54-bac8-4206d61520e6)
 
 Cover, demo and music files are __required__. Cover is .png/.gif, demo and music are .mp3/.ogg. Video for cinema supports .mp4
+
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/f7b1c772-f3b2-42d5-8738-65d4266a19d1)
 
 After you filled up all fields simply click "Generate chart files". Chart files should've been generated in selected folder
+
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/0cc015ae-bf9b-4f9e-a523-09b621033ab3)
 
 ### Editing
@@ -31,16 +35,19 @@ Just like for the offset, you will need to select a program for editing BMS maps
 Most of us use MDBMSC, so just select it.
 
 Additionally you can open info.json file and edit it.
+
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/022aa9c6-eef4-4567-912a-40f1b8ffc805)
 
 ### Help
 
 If you need some help with charting, then you can find some docs in the Help tab.
+
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/e8f8a4f9-0f48-4c03-8cea-b78eb32839d7)
 
 ## Download
 
 Available releases are here:
+
 * [Releases Page](https://github.com/taypexx/chart_manager/releases/)
 
 If you want to build it yourself, you will need LuaRT.
