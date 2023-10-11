@@ -31,16 +31,16 @@ If you haven't selected a program for offsetting, it will prompt you to do it.
 Navigate to the program and select .exe file(*for example Audacity.exe*)
 
 You can also edit BMS maps of your chart. Click "Edit BMS" and choose a map to edit.
-Just like for the offset, you will need to select a program for editing BMS maps.
+Just like for the offset you will need to select a program for editing BMS maps.
 Most of us use MDBMSC, so just select it.
 
-Additionally you can open info.json file and edit it.
+Additionally you can open [info.json](https://github.com/taypexx/chart_manager/blob/main/template/info.json) file and edit it.
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/022aa9c6-eef4-4567-912a-40f1b8ffc805)
 
 ### Help
 
-If you need some help with charting, then you can find some docs in the Help tab.
+If you need some help with charting, then you can find some [docs](https://github.com/taypexx/chart_manager/tree/main/assets) in the Help tab.
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/e8f8a4f9-0f48-4c03-8cea-b78eb32839d7)
 
@@ -55,6 +55,8 @@ Select [main.lua](https://github.com/taypexx/chart_manager/blob/main/main.lua) a
 
 ## Links
 
-MDMC discord: [Click](https://discord.gg/mdmc/)
-MDMC website: [Click](https://mdmc.moe/)
+MDMC discord: 
+[Click](https://discord.gg/mdmc/)
+MDMC website: 
+[Click](https://mdmc.moe/)
 My Discord: `@taypexx`
