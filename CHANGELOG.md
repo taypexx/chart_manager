@@ -1,7 +1,8 @@
-v1.1.1
+# v1.2.0
 
-Other programs are now running in a separate thread(main program doesn't freeze)
-Added help button with charting docs
-CMD windows should be gone now(depends on your OS,lmk if you still have them)
-Program is now compatible with older/modified info.json files
-Major bug fixes
+Changed top menu
+Added button for loading charts to muse dash
+Organized libs
+Added some code for future Discord RPC support
+Fixed names for packed MDMs
+Fixed cmd window when packing

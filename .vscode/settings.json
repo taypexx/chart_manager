@@ -4,6 +4,7 @@
         "param-type-mismatch"
     ],
     "Lua.diagnostics.globals": [
-        "sys"
+        "sys",
+        "each"
     ]
 }

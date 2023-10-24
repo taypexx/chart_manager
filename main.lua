@@ -1,11 +1,14 @@
-local json = require("json")
-local utils = require("utils")
+local json = require("libs.json")
+local utils = require("libs.utils")
+local consts = require("libs.consts")
 local compression = require("compression")
 local ui = require("ui")
 local net = require("net")
+--local discord = require("libs.discord")
 
 local corepath = sys.currentdir
 local targetdir = nil
+local box_chartname
 
 --// Updater
 
@@ -36,7 +39,7 @@ if version_file then
             if tonumber(avail_v) > tonumber(current_v) then
                 local result = ui.confirm(string.format("New version of the program is available (v%s). Would you like to download it?",available_version),"New version available")
                 if result == "yes" then
-                    sys.cmd([[explorer "https://github.com/taypexx/chart_manager/releases/"]])
+                    sys.cmd([[explorer "%sreleases/"]],consts.github)
                 end
             end
         end
@@ -67,23 +70,44 @@ local function saveSettings()
     else print("Couldn't save settings!") end
 end
 
+local function prompt_musedash_program()
+    local selected_path = ui.opendialog("Select MuseDash.exe",false,"Executable file (*.exe)|*.exe").fullpath or ""
+    settings.muse_dash = selected_path
+    return selected_path
+end
+
+--// Muse Dash autodetect path
+if not settings.muse_dash or settings.muse_dash == "" then
+    local default_md_path = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Muse Dash\\MuseDash.exe"
+    local md_exe = sys.File(default_md_path)
+    if md_exe then
+        local response = ui.confirm("We found a Muse Dash path on your computer at:\n"..default_md_path.."\nIs that a correct path?","MuseDash.exe found")
+        if response == "yes" then
+            settings.muse_dash = default_md_path
+        elseif response == "no" then
+            prompt_musedash_program()
+        end
+    end 
+end
+
 --// Window configuration
 
 local win = ui.Window("Chart Manager "..version, "single", 1000, 745)
 win:loadicon(corepath.."/icon.ico")
-win.bgcolor = 0x0d1f30
-win.font = "Calibri"
+win.bgcolor = consts.bgcolor
+win.font = consts.font
 win.fontstyle = {["bold"] = true}
 win:center()
 win:status("> Idle")
 
 function win:onClose()
     saveSettings()
+    --discord.shutdownRPC()
 end
 
 --// Window menu
 
-local win_menu = ui.Menu("Offset music", "Offset demo","Select BMS program","Select offset program","Open info.json","Exit")
+local win_menu = ui.Menu("Exit")
 win.menu = win_menu
 
 local function select_BMS_programm()
@@ -102,9 +126,151 @@ local function select_offset_programm()
     return true
 end
 
---// BMS editing
+local function offset_track(item)
+    if not targetdir then
+        ui.error("You need to select chart folder!","Failed to offset")
+        return
+    end
 
-win.menu:insert(3, "Edit BMS", ui.Menu("map1", "map2", "map3", "map4")).submenu.onClick = function (self,item)
+    if settings.music_offset == "" or not settings.music_offset then
+        local result = ui.confirm("You didn't select a program for music offsetting. Would you like to do it?","No offset program found")
+        if result == "yes" then
+            local selected = select_offset_programm()
+            if not selected then return end
+        else return end
+    end
+
+    local track_name = item.text--string.sub(item.text,8)
+    local track_path = string.format("%s/%s.ogg",targetdir,track_name)
+    local track = io.open(track_path,"r")
+    if not track then
+        track_path = string.format("%s/%s.mp3",targetdir,track_name)
+        track = io.open(track_path,"r")
+    end
+    if not track then
+        ui.error(string.format("No %s file was found in chart folder!",track_name),"Failed to offset")
+        return
+    end
+    track:close()
+
+    local launch_cmd = string.format('""%s" "%s"',settings.music_offset,track_path)
+    coroutine.wrap(function ()
+        win:status("> Offsetting "..track_name.."...")
+        --discord.setState("offset",track_name)
+        sys.cmd(launch_cmd)
+        win:status("> Idle")
+        --discord.setState("create")
+    end)()
+end
+
+--// Icons preload
+local melon_icon = sys.File(corepath.."/assets/ico/melon.ico")
+local offset_icon = sys.File(corepath.."/assets/ico/offset.ico")
+local bms_icon = sys.File(corepath.."/assets/ico/bms.ico")
+local discord_icon = sys.File(corepath.."/assets/ico/discord.ico")
+local file_icon = sys.File(corepath.."/assets/ico/file.ico")
+local help_icon = sys.File(corepath.."/assets/ico/help.ico")
+local music_icon = sys.File(corepath.."/assets/ico/music.ico")
+local photo_icon = sys.File(corepath.."/assets/ico/photo.ico")
+local github_icon = sys.File(corepath.."/assets/ico/github.ico")
+local md_icon = sys.File(corepath.."/assets/ico/md.ico")
+
+---------------------------------------
+
+local mdmc_menu = ui.Menu()
+local mdmc_buttons = {mdmc_menu:insert(1,"Home"),mdmc_menu:insert(2,"Upload"),mdmc_menu:insert(3,"Charts"),mdmc_menu:insert(4,"Find Current Chart"),mdmc_menu:insert(5,"Discord")}
+
+local function mdmc_menu_func(item)
+    if item.text == "Home" then
+        sys.cmd([[explorer "https://mdmc.moe/"]])
+    elseif item.text == "Upload" then
+        sys.cmd([[explorer "https://mdmc.moe/upload"]])
+    elseif item.text == "Charts" then
+        sys.cmd([[explorer "https://mdmc.moe/charts"]])
+    elseif item.text == "Find Current Chart" then
+        if box_chartname.text ~= "" then
+            sys.cmd(string.format([[explorer "https://mdmc.moe/charts?search=%s"]],box_chartname.text)) 
+        else
+            ui.error("Current chart name is empty","Failed to find")
+        end
+    elseif item.text == "Discord" then
+        sys.cmd([[explorer "https://discord.gg/mdmc"]])
+    end
+end
+
+for _,button in pairs(mdmc_buttons) do
+    button.onClick = mdmc_menu_func
+    if button.text == "Discord" then
+        button:loadicon(discord_icon)
+    else
+        button:loadicon(melon_icon)
+    end
+end
+
+win.menu:insert(1, "MDMC", mdmc_menu)
+
+---------------------------------------
+
+local file_open_menu = ui.Menu()
+local file_open_buttons = {file_open_menu:insert(1,"info"),file_open_menu:insert(2,"cover")}
+
+local function file_open_menu_func(item)
+    if not targetdir then
+        ui.error("You need to select chart folder!","Failed to open")
+        return
+    end
+    if item.text == "info" then
+        coroutine.wrap(function (...)
+            win:status("> Viewing info.json...")
+            sys.cmd(string.format([["%s"]],targetdir.."\\info.json"))
+            win:status("> Idle")
+        end)()
+    elseif item.text == "cover" then
+        local filename = "cover.png"
+        local f = io.open(targetdir.."\\"..filename,"r")
+        if not f then
+            filename = "cover.gif"
+        else
+            f:close()
+        end
+        coroutine.wrap(function (...)
+            win:status(string.format("> Viewing %s...",filename))
+            sys.cmd(string.format([["%s"]],targetdir.."\\"..filename))
+            win:status("> Idle")
+        end)()
+    end
+end
+
+for _,button in pairs(file_open_buttons) do
+    if button.text == "info" then
+        button.onClick = file_open_menu_func
+        button:loadicon(file_icon)
+    elseif button.text == "cover" then
+        button.onClick = file_open_menu_func
+        button:loadicon(photo_icon)
+    end
+end
+
+win.menu:insert(2, "Open", file_open_menu)
+
+---------------------------------------
+
+local offset_edit_menu = ui.Menu()
+local offset_edit_buttons = {offset_edit_menu:insert(1,"demo"),offset_edit_menu:insert(2,"music")}
+
+for _,button in pairs(offset_edit_buttons) do
+    button.onClick = offset_track
+    button:loadicon(music_icon)
+end
+
+win.menu:insert(3, "Offset", offset_edit_menu)
+
+---------------------------------------
+
+local bms_edit_menu = ui.Menu()
+local bms_edit_buttons = {bms_edit_menu:insert(1,"map1"),bms_edit_menu:insert(2,"map2"),bms_edit_menu:insert(3,"map3"),bms_edit_menu:insert(4,"map4")}
+
+local function bms_edit_menu_func(item)
     if not targetdir then
         ui.error("You need to select chart folder!","Failed to edit")
         return
@@ -130,78 +296,64 @@ win.menu:insert(3, "Edit BMS", ui.Menu("map1", "map2", "map3", "map4")).submenu.
     local launch_cmd = string.format('""%s" "%s"',settings.bms_editor,map_path)
     coroutine.wrap(function ()
         win:status("> Editing "..map_name.."...")
+        --discord.setState("bms",map_name)
         sys.cmd(launch_cmd)
         win:status("> Idle")
+        --discord.setState("create")
     end)()
 end
 
---// Offset editing
-
-local function offset_track(item)
-    if not targetdir then
-        ui.error("You need to select chart folder!","Failed to offset")
-        return
-    end
-
-    if settings.music_offset == "" or not settings.music_offset then
-        local result = ui.confirm("You didn't select a program for music offsetting. Would you like to do it?","No offset program found")
-        if result == "yes" then
-            local selected = select_offset_programm()
-            if not selected then return end
-        else return end
-    end
-
-    local track_name = string.sub(item.text,8)
-    local track_path = string.format("%s/%s.ogg",targetdir,track_name)
-    local track = io.open(track_path,"r")
-    if not track then
-        track_path = string.format("%s/%s.mp3",targetdir,track_name)
-        track = io.open(track_path,"r")
-    end
-    if not track then
-        ui.error(string.format("No %s file was found in chart folder!",track_name),"Failed to offset")
-        return
-    end
-    track:close()
-
-    local launch_cmd = string.format('""%s" "%s"',settings.music_offset,track_path)
-    coroutine.wrap(function ()
-        win:status("> Offsetting "..track_name.."...")
-        sys.cmd(launch_cmd)
-        win:status("> Idle")
-    end)()
+for _,button in pairs(bms_edit_buttons) do
+    button.onClick = bms_edit_menu_func
+    button:loadicon(bms_icon)
 end
 
---// Menu setup
+win.menu:insert(4, "Edit BMS", bms_edit_menu)
 
-win.menu.items[1].onClick = offset_track
-win.menu.items[2].onClick = offset_track
-win.menu.items[4].onClick = select_BMS_programm
-win.menu.items[5].onClick = select_offset_programm
-win.menu.items[6].onClick = function ()
-    if not targetdir then
-        ui.error("You need to select chart folder!","Failed to open")
-        return
+---------------------------------------
+
+local program_select_menu = ui.Menu()
+local program_select_buttons = {program_select_menu:insert(1,"BMS"),program_select_menu:insert(2,"Offset"),program_select_menu:insert(3,"Muse Dash")}
+
+for _,button in pairs(program_select_buttons) do
+    if button.text == "BMS" then
+        button.onClick = select_BMS_programm
+        button:loadicon(bms_icon) 
+    elseif button.text == "Offset" then
+        button.onClick = select_offset_programm
+        button:loadicon(offset_icon)
+    elseif button.text == "Muse Dash" then
+        button.onClick = prompt_musedash_program
+        button:loadicon(md_icon)
     end
-    coroutine.wrap(function (...)
-        win:status("> Viewing info.json...")
-        sys.cmd(string.format([["%s"]],targetdir.."\\info.json"))
-        win:status("> Idle")
-    end)()
 end
 
-local docs = {
-    ["Muse Dash Charting Tips"] = "", 
-    ["Understanding Muse Dash Chart Structure"] = "", 
-    ["Offsetting Charts With Adobe Audition (AU)"] = "", 
-    ["Quick MDBMSC Setup Guide"] = "https://docs.google.com/document/d/1wYgaUv_sX6IxUv-KjiRRv68Jg82xH0GG21ySRs8zigk/preview"
+win.menu:insert(5, "Select Programs",program_select_menu)
+
+---------------------------------------
+
+local help_docs = {
+    [1] = {"Muse Dash Charting Tips",""},
+    [2] = {"Understanding Muse Dash Chart Structure",""},
+    [3] = {"Offsetting Charts With Adobe Audition (AU)",""}, 
+    [4] = {"Quick MDBMSC Setup Guide","https://docs.google.com/document/d/1wYgaUv_sX6IxUv-KjiRRv68Jg82xH0GG21ySRs8zigk/preview"},
+    [5] = {"Github",consts.github}
 }
-local docs_ind = {}
-for i,_ in pairs(docs) do
-    table.insert(docs_ind,i)
+
+local help_docs_menu = ui.Menu()
+local help_docs_buttons = {}
+
+for i,t in ipairs(help_docs) do
+    table.insert(help_docs_buttons,help_docs_menu:insert(i,t[1]))
 end
-win.menu:insert(7, "Help", ui.Menu(table.unpack(docs_ind))).submenu.onClick = function (self,item)
-    local doc_dir = docs[item.text]
+
+local function help_doc_open(item)
+    local doc_dir
+    for _,t in pairs(help_docs) do
+        if t[1] == item.text then
+            doc_dir = t[2]
+        end
+    end
     if not doc_dir then return end
     coroutine.wrap(function ()
         if doc_dir == "" then
@@ -212,14 +364,22 @@ win.menu:insert(7, "Help", ui.Menu(table.unpack(docs_ind))).submenu.onClick = fu
     end)()
 end
 
-win.menu.items[8].onClick = function ()
-    sys.exit()
+for _,button in pairs(help_docs_buttons) do
+    button.onClick = help_doc_open
+    if button.text == "Github" then
+        button:loadicon(github_icon) 
+    else
+        button:loadicon(help_icon) 
+    end
 end
 
---[[
-win:loadtrayicon("./icon.ico")
-win.traytooltip = "Chart Manager"
-]]
+win.menu:insert(6, "Help", help_docs_menu)
+
+---------------------------------------
+
+win.menu.items[7].onClick = function ()
+    sys.exit()
+end
 
 --// UI
 
@@ -239,16 +399,18 @@ bg.width = bg_width
 bg.height = bg_height
 bg:center()
 
-local pack_button = ui.Button(win, "Pack files to MDM", 250,650,175,35)
-local load_button = ui.Button(win, "Generate chart files", 25,650,175,35)
-bg:toback(pack_button)
+local load_button = ui.Button(win, "Generate chart files", 25,650,150,35)
+local pack_button = ui.Button(win, "Pack files to MDM", 200,650,150,35)
+local mdm_load_button = ui.Button(win, "Load MDM to Muse Dash", 375,650,150,35)
 bg:toback(load_button)
+bg:toback(pack_button)
+bg:toback(mdm_load_button)
 
 local title_chartname = ui.Label(win,"Name",25,25,175,35)
 title_chartname.fontsize = 18
 title_chartname.fgcolor = 0xFFFFFF
 bg:toback(title_chartname)
-local box_chartname = ui.Entry(win,"",250,25,225,35)
+box_chartname = ui.Entry(win,"",250,25,225,35)
 box_chartname.tooltip = "Name of your chart"
 box_chartname.fontsize = 12
 box_chartname.fontstyle = {["bold"] = false}
@@ -967,8 +1129,7 @@ function chart_pack()
     infoFile:close()
     
     local chartname = info.name
-    chartname = chartname:gsub('%W','') -- removing all non alphanumeric characters
-    print(chartname) 
+    --chartname = chartname:gsub('%W','') -- removing all non alphanumeric characters
 
     local mdmname = chartname..".zip"
     sys.currentdir = targetdir
@@ -992,8 +1153,61 @@ function chart_pack()
     end
 
     mdm:close()
-    os.execute("ren "..mdmname.." "..chartname..".mdm")
+    sys.cmd(string.format([[ren "%s" "%s.mdm"]],mdmname,chartname))
     return true,"Successfully packed chart into MDM!"
+end
+
+local function check_for_mdm()
+    local found_mdm
+    for entry in each(sys.Directory(targetdir):list("*.*")) do
+        local expected_chars = string.sub(entry.name,string.len(entry.name)-3)
+        print(expected_chars)
+        if string.lower(expected_chars) == ".mdm" then
+            found_mdm = entry
+            break
+        end
+    end
+    return found_mdm
+end
+
+function mdm_load()
+    --// Loading to Muse Dash
+
+    if not targetdir then
+        return false,"You need to select chart folder!"
+    end
+
+    if not settings.muse_dash or settings.muse_dash == "" then
+        local response = ui.confirm("Muse Dash path wasn't selected. Do you want to do it right now?","No Muse Dash path")
+        if response == "yes" then
+            prompt_musedash_program()
+        elseif response == "no" then
+            return false,"You need Muse Dash path to save MDMs!"
+        end
+    end
+
+    win:status("> Checking for MDM...")
+
+    local has_mdm = check_for_mdm()
+    if not has_mdm then
+        local result = ui.confirm("There is no MDM file in the chart folder. Do you want to pack files?","No MDM found")
+        if result == "yes" then
+            local success,msg = chart_pack()
+            if not success then return false,msg end
+            ui.msg(msg,"Success")
+            has_mdm = check_for_mdm()
+            if not has_mdm then return false end
+        else return false,"You have to pack files in order to save them" end
+    end
+
+    win:status("> Loading to Muse Dash charts path...")
+
+    local split_path = utils.split(settings.muse_dash,"\\")
+    local charts_path = string.reverse(string.sub(string.reverse(settings.muse_dash),string.len(split_path[#split_path])+1)).."Custom_Albums"
+    
+    has_mdm:move(charts_path.."/"..has_mdm.name)
+
+    return true,"Successfully saved chart to Muse Dash!"
 end
 
 ---------------------------------------
@@ -1031,6 +1245,19 @@ function load_button:onClick()
     else 
         win:status("> Failed to generate")
         ui.error(msg,"Failed to generate")
+    end
+    win:status("> Idle")
+end
+
+function mdm_load_button:onClick()
+    local success,msg = mdm_load()
+    msg = msg or "Unknown error occured"
+    if success then
+        win:status("> Done!")
+        ui.msg(msg,"Success")
+    else 
+        win:status("> Failed to load")
+        ui.error(msg,"Failed to load")
     end
     win:status("> Idle")
 end
