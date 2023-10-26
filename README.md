@@ -70,4 +70,4 @@ Select [main.lua](https://github.com/taypexx/chart_manager/blob/main/main.lua) a
 
 * [MDMC discord](https://discord.gg/mdmc/)
 * [MDMC website](https://mdmc.moe/)
-My Discord: `@taypexx`
+* My Discord: `@taypexx`
