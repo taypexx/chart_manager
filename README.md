@@ -8,17 +8,17 @@ Chart manager is a program that helps you create and edit any charts for Muse Da
 
 Before making charts you need to select a chart folder:
 
-![image](https://github.com/taypexx/chart_manager/assets/102821080/190d4fef-7420-4391-8319-6042daab68d1)
+![image](https://github.com/taypexx/chart_manager/assets/102821080/ca4af372-8f9d-49f2-a23a-5a845f484460)
 
 ### Creating
 
 Fill these fields for your chart and select files for it:
 
-![image](https://github.com/taypexx/chart_manager/assets/102821080/e93efc7f-baaf-4d54-bac8-4206d61520e6)
+![image](https://github.com/taypexx/chart_manager/assets/102821080/b56d7881-c8a7-4280-9d96-87b2769b8695)
 
 Cover, demo and music files are __required__. Cover is .png/.gif, demo and music are .mp3/.ogg. Video for cinema supports .mp4
 
-![image](https://github.com/taypexx/chart_manager/assets/102821080/f7b1c772-f3b2-42d5-8738-65d4266a19d1)
+![image](https://github.com/taypexx/chart_manager/assets/102821080/bbbe65ea-343c-4bb8-a049-4f8d2c92ed3b)
 
 After you filled up all fields simply click "Generate chart files". Chart files should've been generated in selected folder
 
@@ -26,23 +26,36 @@ After you filled up all fields simply click "Generate chart files". Chart files 
 
 ### Editing
 
-To edit a chart you will need the top menu of the program. To offset music/demo click one of the buttons.
+To edit a chart you will need the top menu of the program. 
+
+To offset music/demo click "Offset" and select demo or music.
 If you haven't selected a program for offsetting, it will prompt you to do it. 
 Navigate to the program and select .exe file(*for example Audacity.exe*)
 
 You can also edit BMS maps of your chart. Click "Edit BMS" and choose a map to edit.
 Just like for the offset you will need to select a program for editing BMS maps.
 Most of us use MDBMSC, so just select it.
+(If you want to change path for offset or bms editor programs you can do it by clicking on "Select Programs")
 
-Additionally you can open [info.json](https://github.com/taypexx/chart_manager/blob/main/template/info.json) file and edit it.
+In the "Open" tab you can open some files of your chart or open the entire folder.
 
-![image](https://github.com/taypexx/chart_manager/assets/102821080/022aa9c6-eef4-4567-912a-40f1b8ffc805)
+MDMC menu contains some links.
 
-### Help
+![image](https://github.com/taypexx/chart_manager/assets/102821080/f65a8e18-3ca5-4577-9f63-40dcaae509f4)
 
 If you need some help with charting, then you can find some [docs](https://github.com/taypexx/chart_manager/tree/main/assets) in the Help tab.
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/e8f8a4f9-0f48-4c03-8cea-b78eb32839d7)
+
+## Saving
+
+After you are done with your chart you can either pack it into MDM file
+(it will be saved in chart folder) or do the same but save it to Muse Dash 
+Custom_Albums folder.
+If you haven't packed the chart and you want to save it to custom albums folder
+program will ask you to do it.
+
+![image](https://github.com/taypexx/chart_manager/assets/102821080/ff3bff43-7f79-456b-ab3f-b5ed716911ef)
 
 ## Download
 
@@ -55,8 +68,6 @@ Select [main.lua](https://github.com/taypexx/chart_manager/blob/main/main.lua) a
 
 ## Links
 
-MDMC discord: 
-[Click](https://discord.gg/mdmc/)
-MDMC website: 
-[Click](https://mdmc.moe/)
+* [MDMC discord](https://discord.gg/mdmc/)
+* [MDMC website](https://mdmc.moe/)
 My Discord: `@taypexx`
