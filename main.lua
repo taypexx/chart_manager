@@ -212,14 +212,16 @@ win.menu:insert(1, "MDMC", mdmc_menu)
 ---------------------------------------
 
 local file_open_menu = ui.Menu()
-local file_open_buttons = {file_open_menu:insert(1,"info"),file_open_menu:insert(2,"cover")}
+local file_open_buttons = {file_open_menu:insert(1,"Chart Folder"),file_open_menu:insert(2,"info"),file_open_menu:insert(3,"cover")}
 
 local function file_open_menu_func(item)
     if not targetdir then
         ui.error("You need to select chart folder!","Failed to open")
         return
     end
-    if item.text == "info" then
+    if item.text == "Chart Folder" then
+        sys.cmd(string.format([[explorer "%s"]],targetdir))
+    elseif item.text == "info" then
         coroutine.wrap(function (...)
             win:status("> Viewing info.json...")
             sys.cmd(string.format([["%s"]],targetdir.."\\info.json"))
@@ -242,11 +244,12 @@ local function file_open_menu_func(item)
 end
 
 for _,button in pairs(file_open_buttons) do
-    if button.text == "info" then
-        button.onClick = file_open_menu_func
+    button.onClick = file_open_menu_func
+    if button.text == "Chart Folder" then
+        button:loadicon(melon_icon)
+    elseif button.text == "info" then
         button:loadicon(file_icon)
     elseif button.text == "cover" then
-        button.onClick = file_open_menu_func
         button:loadicon(photo_icon)
     end
 end
@@ -1106,6 +1109,31 @@ function chart_pack()
         table.insert(filestotal.map,4)
     end
 
+    win:status("> Checking for dialog files...")
+
+    local map1_talk = io.open(targetdir.."/map1.talk","r")
+    local map2_talk = io.open(targetdir.."/map2.talk","r")
+    local map3_talk = io.open(targetdir.."/map3.talk","r")
+    local map4_talk = io.open(targetdir.."/map4.talk","r")
+
+    filestotal.map_talks = {}
+    if map1_talk then
+        map1_talk:close()
+        table.insert(filestotal.map_talks,1)
+    end
+    if map2_talk then
+        map2_talk:close()
+        table.insert(filestotal.map_talks,2)
+    end
+    if map3_talk then
+        map3_talk:close()
+        table.insert(filestotal.map_talks,3)
+    end
+    if map4_talk then
+        map4_talk:close()
+        table.insert(filestotal.map_talks,4)
+    end
+
     win:status("> Checking for cinema files...")
 
     --// Cinema files
@@ -1148,8 +1176,12 @@ function chart_pack()
         mdm:write(targetdir.."/video.mp4")
     end
 
-    for i,v in pairs(filestotal.map) do
+    for _,v in pairs(filestotal.map) do
         mdm:write(targetdir.."/map"..v..".bms")
+    end
+
+    for _,v in pairs(filestotal.map_talks) do
+        mdm:write(targetdir.."/map"..v..".talk")
     end
 
     mdm:close()

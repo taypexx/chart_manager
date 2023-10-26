@@ -1,8 +1,5 @@
-# v1.2.0
+# v1.2.1
 
-Changed top menu
-Added button for loading charts to muse dash
-Organized libs
-Added some code for future Discord RPC support
-Fixed names for packed MDMs
-Fixed cmd window when packing
+Changed design of the program
+.talk files are now packed to mdm if they exist
+You can now open chart folder in "Open" tab

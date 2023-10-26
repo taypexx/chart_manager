@@ -1,6 +1,6 @@
 return {
 
-    bgcolor = 0x0d1f30,
+    bgcolor = 0x340a42,
     font = "Calibri",
     github = "https://github.com/taypexx/chart_manager/",
 
