@@ -45,7 +45,7 @@ MDMC menu contains some links.
 
 If you need some help with charting, then you can find some [docs](https://github.com/taypexx/chart_manager/tree/main/assets) in the Help tab.
 
-![image](https://github.com/taypexx/chart_manager/assets/102821080/e8f8a4f9-0f48-4c03-8cea-b78eb32839d7)
+![image](https://github.com/taypexx/chart_manager/assets/102821080/eadd5b70-8df7-4216-b374-d650b4f6c73b)
 
 ## Saving
 
