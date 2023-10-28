@@ -62,6 +62,10 @@ if settings_file then
 end
 
 local function saveSettings()
+    if settings.muse_dash == "" and settings.bms_editor == "" and settings.music_offset == "" then
+        print("Skipped settings saving, fields are empty")
+        return
+    end
     settings_file = io.open(corepath.."/settings.json","w")
     if settings_file then
         settings_file:write(json.stringify(settings) or {})
@@ -71,12 +75,16 @@ local function saveSettings()
 end
 
 local function prompt_musedash_program()
-    local selected_path = ui.opendialog("Select MuseDash.exe",false,"Executable file (*.exe)|*.exe").fullpath or ""
+    local selected_path = ui.opendialog("Select MuseDash.exe",false,"Executable file (*.exe)|*.exe")
+    if selected_path then
+        selected_path = selected_path.fullpath
+    else selected_path = "" end
     settings.muse_dash = selected_path
     return selected_path
 end
 
 --// Muse Dash autodetect path
+
 if not settings.muse_dash or settings.muse_dash == "" then
     local default_md_path = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Muse Dash\\MuseDash.exe"
     local md_exe = sys.File(default_md_path)
@@ -107,7 +115,7 @@ end
 
 --// Window menu
 
-local win_menu = ui.Menu("Exit")
+local win_menu = ui.Menu("Run MuseDash","Exit")
 win.menu = win_menu
 
 local function select_BMS_programm()
@@ -381,6 +389,17 @@ win.menu:insert(6, "Help", help_docs_menu)
 ---------------------------------------
 
 win.menu.items[7].onClick = function ()
+    if not settings.muse_dash or settings.muse_dash == "" then
+        local response = ui.confirm("Muse Dash path wasn't selected. Do you want to select it?","No Muse Dash path")
+        if response == "yes" then
+            local selected = prompt_musedash_program()
+            if selected == "" then return end
+        else return end
+    end
+    sys.cmd(string.format([[""%s"]],settings.muse_dash))
+end
+
+win.menu.items[8].onClick = function ()
     sys.exit()
 end
 
@@ -722,7 +741,7 @@ clearFields()
 local function autofill_fields()
 
     if box_chartname.text ~= "" then
-        if ui.confirm("Erase all fields?","Erase") == "yes" then
+        if ui.confirm("You selected a new chart folder. Erase all previous fields?","Erase") == "yes" then
             clearFields()
         end
     else clearFields() end
@@ -868,10 +887,21 @@ function generate_chart()
         end
     end
 
-    win:status("> Loading selected files...")
+    --// Cover cropping
 
-    local cover = selectedFiles.cover:copy("TEMPCOVER"..selectedFiles.cover.extension)
-    cover:move(targetdir.."/cover"..selectedFiles.cover.extension)
+    local need_cropping = ui.confirm("Do you need to crop the Cover image in a circle?","Cover cropping")
+    if need_cropping == "yes" and selectedFiles.cover.extension ~= ".gif" then
+        win:status("> Cropping cover...")
+        sys.cmd(string.format([[""%s\py\cover_cropper.exe" "%s" "%s"]],corepath,selectedFiles.cover.fullpath,targetdir))
+    else
+        if selectedFiles.cover.extension == ".gif" and need_cropping == "yes" then
+            ui.warn("There is no support for cropping gif covers at the moment. Cover won't be cropped. ","Cannot crop GIF")
+        end
+        local cover = selectedFiles.cover:copy("TEMPCOVER"..selectedFiles.cover.extension)
+        cover:move(targetdir.."/cover"..selectedFiles.cover.extension)
+    end
+
+    win:status("> Loading selected files...")
 
     local demo = selectedFiles.demo:copy("TEMPDEMO"..selectedFiles.demo.extension)
     demo:move(targetdir.."/demo"..selectedFiles.demo.extension)
@@ -1244,9 +1274,14 @@ end
 
 ---------------------------------------
 
+local button_debounce = false
+
 --// Bindings
 
 function pack_button:onClick()
+    if button_debounce then return end
+    button_debounce = true
+
     local success,msg = chart_pack()
     msg = msg or "Unknown error occured"
     if success then
@@ -1256,10 +1291,15 @@ function pack_button:onClick()
         win:status("> Failed to pack")
         ui.error(msg,"Failed to pack")
     end
+
+    button_debounce = false
     win:status("> Idle")
 end
 
 function load_button:onClick()
+    if button_debounce then return end
+    button_debounce = true
+
     local success,msg = generate_chart()
     msg = msg or "Unknown error occured"
     if success then
@@ -1278,10 +1318,15 @@ function load_button:onClick()
         win:status("> Failed to generate")
         ui.error(msg,"Failed to generate")
     end
+
+    button_debounce = false
     win:status("> Idle")
 end
 
 function mdm_load_button:onClick()
+    if button_debounce then return end
+    button_debounce = true
+
     local success,msg = mdm_load()
     msg = msg or "Unknown error occured"
     if success then
@@ -1291,7 +1336,9 @@ function mdm_load_button:onClick()
         win:status("> Failed to load")
         ui.error(msg,"Failed to load")
     end
+
     win:status("> Idle")
+    button_debounce = false
 end
 
 ui.run(win)

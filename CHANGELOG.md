@@ -1,5 +1,6 @@
-# v1.2.1
+# v1.3.0
 
-Changed design of the program
-.talk files are now packed to mdm if they exist
-You can now open chart folder in "Open" tab
+Added cover cropping when generating chart (thanks Stormberry for python file)
+Added program installer in case you dont wanna unzip program
+Added debounce for main buttons
+Added "Run MuseDash" button for the menu
