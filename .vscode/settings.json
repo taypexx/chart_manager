@@ -1,10 +1,16 @@
 {
     "Lua.diagnostics.disable": [
         "lowercase-global",
-        "param-type-mismatch"
+        "param-type-mismatch",
+        "inject-field",
+        "deprecated",
+        "return-type-mismatch",
+        "cast-local-type",
+        "missing-return-value"
     ],
     "Lua.diagnostics.globals": [
         "sys",
-        "each"
+        "each",
+        "jit"
     ]
 }

@@ -3,6 +3,9 @@ return {
     bgcolor = 0x340a42,
     font = "Calibri",
     github = "https://github.com/taypexx/chart_manager/",
+    yt = "https://youtube.com/channel/UCrmB0yne92J9C042I8-Qy9g/",
+    discord = "https://discord.gg/mdmc",
+    bms_crop_value = "3I",
 
     discordapp = "1158821309556457536",
     discordRPC = {
