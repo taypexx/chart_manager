@@ -113,7 +113,7 @@ function edit_mode.run()
 
     function file_open_menu_func(item)
         if item.text == "Muse Dash Folder" then
-            if not settings.muse_dash then
+            if not settings.muse_dash or settings.muse_dash == "" then
                 ui.error("You need to select Muse Dash path!","Failed to open")
                 return
             end
@@ -323,15 +323,21 @@ function edit_mode.run()
     bg.height = bg_height
     bg:center()
 
-    local load_button = ui.Button(win, "Generate chart files", 25,650,150,35)
+    local load_button = ui.Button(win, "Generate chart files", 25,650)
     load_button:loadicon(bms_icon)
     load_button.fontsize = 14
-    local pack_button = ui.Button(win, "Pack files to MDM", 225,650,150,35)
+    load_button.width = 185
+    load_button.size = 35
+    local pack_button = ui.Button(win, "Pack files to MDM", 225,650)
     pack_button:loadicon(archive_icon)
     pack_button.fontsize = 14
-    local mdm_load_button = ui.Button(win, "Load MDM to Muse Dash", 415,650,150,35)
+    pack_button.width = 175
+    pack_button.size = 35
+    local mdm_load_button = ui.Button(win, "Load MDM to Muse Dash", 415,650)
     mdm_load_button:loadicon(md_icon)
     mdm_load_button.fontsize = 14
+    mdm_load_button.width = 230
+    mdm_load_button.size = 35
     bg:toback(load_button)
     bg:toback(pack_button)
     bg:toback(mdm_load_button)
@@ -590,11 +596,13 @@ function edit_mode.run()
     local title_dir = ui.Label(win,"Chart folder",25,525,175,35)
     title_dir.fontsize = 18
     title_dir.fgcolor = 0xFFFFFF
-
     bg:toback(title_dir)
-    local choose_dir = ui.Button(win,"Click to browse directory",250,525,225,35)
+
+    local choose_dir = ui.Button(win,"Click to browse directory",250,525)
     choose_dir:loadicon(melon_icon)
     choose_dir.fontsize = 14
+    choose_dir.width = 225
+    choose_dir.height = 35
     bg:toback(choose_dir)
 
     progressbar = ui.Progressbar(win,25,575,450,25)
@@ -1024,6 +1032,7 @@ function edit_mode.run()
     end
     
     ui.run(win)
+    waitall()
 end
 
 return edit_mode

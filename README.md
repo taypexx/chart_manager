@@ -57,6 +57,11 @@ program will ask you to do it.
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/ff3bff43-7f79-456b-ab3f-b5ed716911ef)
 
+## Custom Background
+
+If you want to change background image of the program you can replace [bg.png](https://github.com/taypexx/chart_manager/blob/main/assets/bg.png)
+with your own image. Also works for other image and icon files.
+
 ## Download
 
 Available releases are here:

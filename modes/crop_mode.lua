@@ -156,9 +156,11 @@ function crop_mode.run()
     title_select.fgcolor = 0xFFFFFF
     bg:toback(title_select)
     
-    local button_select = ui.Button(win,"Select a chart file",225,25,175,35)
+    local button_select = ui.Button(win,"Select a chart file",225,25)
     button_select:loadicon(melon_icon)
     button_select.fontsize = 14
+    button_select.width = 175
+    button_select.height = 35
     bg:toback(button_select)
     button_select.onClick = function ()
         selected_chart = ui.opendialog("Select the chart file", false, "MDM chart|*.mdm")
@@ -176,9 +178,11 @@ function crop_mode.run()
     title_maps.fgcolor = 0xFFFFFF
     bg:toback(title_maps)
 
-    local button_save = ui.Button(win,"Save to Muse Dash",200,400,375,35)
+    local button_save = ui.Button(win,"Save to Muse Dash",215,400)
     button_save.fontsize = 14
     button_save:loadicon(md_icon)
+    button_save.width = 185
+    button_save.height = 35
     bg:toback(button_save)
     button_save.enabled = false
     button_save.onClick = function ()
@@ -393,9 +397,11 @@ function crop_mode.run()
         buttondb = false
     end
 
-    local button_crop = ui.Button(win,"Choose the map",25,400,375,35)
+    local button_crop = ui.Button(win,"Choose the map",25,400)
     button_crop:loadicon(bms_icon)
     button_crop.fontsize = 14
+    button_crop.width = 175
+    button_crop.height = 35
     bg:toback(button_crop)
     button_crop.enabled = false
     button_crop.onClick = function ()
@@ -501,6 +507,7 @@ function crop_mode.run()
 
 
     ui.run(win)
+    waitall()
 end
 
 return crop_mode

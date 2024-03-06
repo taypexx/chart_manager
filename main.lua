@@ -155,64 +155,75 @@ credits.onClick = function ()
     sys.cmd(string.format([[explorer "%s"]],consts.yt))
 end
 
-local help_button = ui.Button(start_win,"Help",10,465,50,30)
+local help_button = ui.Button(start_win,"Help",10,465)
 help_button.fontsize = 11
 help_button:loadicon(github_icon)
+help_button.width = 80
+help_button.height = 30
 bg:toback(help_button)
 
 help_button.onClick = function ()
     sys.cmd(string.format([[explorer "%s#chart_manager"]],consts.github))
 end
 
-local discord_button = ui.Button(start_win,"Discord",70,465,50,30)
+local discord_button = ui.Button(start_win,"Discord",100,465)
 discord_button.fontsize = 11
 discord_button:loadicon(discord_icon)
+discord_button.width = 80
+discord_button.height = 30
 bg:toback(discord_button)
 
 discord_button.onClick = function ()
     sys.cmd(string.format([[explorer "%s"]],consts.discord))
 end
 
-local mdmc_button = ui.Button(start_win,"MDMC",147,465,50,30)
+local mdmc_button = ui.Button(start_win,"MDMC",190,465)
 mdmc_button.fontsize = 11
 mdmc_button:loadicon(melon_icon)
+mdmc_button.width = 80
+mdmc_button.height = 30
 bg:toback(mdmc_button)
 
 mdmc_button.onClick = function ()
     sys.cmd([[explorer "https://mdmc.moe"]])
 end
 
-local edit_button = ui.Button(start_win, "Create/edit a chart", 50,350,200,50)
+local edit_button = ui.Button(start_win,"Create/edit a chart",25,350)
 edit_button:loadicon(bms_icon)
 edit_button.fontsize = 18
+edit_button.width = 220
+edit_button.height = 40
+bg:toback(edit_button)
 edit_button.onClick = function ()
     start_win.visible = false
     start_win.enabled = false
     edit_mode.run()
 end
 
-local crop_button = ui.Button(start_win, "Crop a chart", 275,350,200,50)
+local crop_button = ui.Button(start_win,"Crop a chart",250,350)
 crop_button:loadicon(music_icon)
 crop_button.fontsize = 18
+crop_button.width = 200
+crop_button.height = 40
+bg:toback(crop_button)
 crop_button.onClick = function ()
     start_win.visible = false
     start_win.enabled = false
     crop_mode.run()
 end
 
-local download_button = ui.Button(start_win, "Coming soon", 430,350,200,50)
+local download_button = ui.Button(start_win,"Coming soon",455,350,200,50)
 download_button:loadicon(md_icon)
 download_button.fontsize = 18
+download_button.width = 220
+download_button.height = 40
 download_button.enabled = false
+bg:toback(download_button)
 download_button.onClick = function ()
     start_win.visible = false
     start_win.enabled = false
     download_mode.run()
 end
-
-bg:toback(edit_button)
-bg:toback(crop_button)
-bg:toback(download_button)
 
 ---------------------------------------
 
@@ -488,3 +499,4 @@ end
 ---------------------------------------
 
 ui.run(start_win)
+waitall()

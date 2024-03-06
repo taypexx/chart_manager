@@ -45,6 +45,7 @@ function download_mode.run()
     bg:center()
 
     ui.run(win)
+    waitall()
 end
 
 return download_mode
