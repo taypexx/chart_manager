@@ -2,7 +2,7 @@
 
 ## About
 
-Chart manager is a program that helps you create and edit any charts for Muse Dash. It's still in development, so if you have found any bugs then let me know.
+Chart manager is a program that helps you create and edit custom charts for Muse Dash. It's still in development, so let me know if you find any bugs.
 
 ## Making charts
 
@@ -16,17 +16,17 @@ Fill these fields for your chart and select files for it:
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/b56d7881-c8a7-4280-9d96-87b2769b8695)
 
-Cover, demo and music files are __required__. Cover is .png/.gif, demo and music are .mp3/.ogg. Video for cinema supports .mp4
+Cover, demo and music files are __required__. Cover is .png/.gif, demo and music are .mp3/.ogg. Cinema video supports .mp4
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/bbbe65ea-343c-4bb8-a049-4f8d2c92ed3b)
 
-After you filled up all fields simply click "Generate chart files". Chart files should've been generated in selected folder
+After you fillupa the fields simply click "Generate chart files". Chart files will be generated in the selected folder
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/0cc015ae-bf9b-4f9e-a523-09b621033ab3)
 
 ### Editing
 
-To edit a chart you will need the top menu of the program. 
+Even though it's not necessary, you can edit a chart using the top menu of the program.
 
 To offset music/demo click "Offset" and select demo or music.
 If you haven't selected a program for offsetting, it will prompt you to do it. 
@@ -43,24 +43,24 @@ MDMC menu contains some links.
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/f65a8e18-3ca5-4577-9f63-40dcaae509f4)
 
-If you need some help with charting, then you can find some [docs](https://github.com/taypexx/chart_manager/tree/main/assets) in the Help tab.
+If you need some help with charting you can find some [docs](https://github.com/taypexx/chart_manager/tree/main/assets) in the Help tab. 
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/eadd5b70-8df7-4216-b374-d650b4f6c73b)
 
 ## Saving
 
 After you are done with your chart you can either pack it into MDM file
-(it will be saved in chart folder) or do the same but save it to Muse Dash 
+(it will be saved in chart folder) or do the same but save it to the Muse Dash 
 Custom_Albums folder.
-If you haven't packed the chart and you want to save it to custom albums folder
-program will ask you to do it.
+If you haven't packed the chart yet and you want to save it to custom albums folder
+the program will ask you to do it.
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/ff3bff43-7f79-456b-ab3f-b5ed716911ef)
 
 ## Custom Background
 
-If you want to change background image of the program you can replace [bg.png](https://github.com/taypexx/chart_manager/blob/main/assets/bg.png)
-with your own image. Also works for other image and icon files.
+If you want to change the background image of the program you can replace [bg.png](https://github.com/taypexx/chart_manager/blob/main/assets/bg.png)
+with your own image. Also works for other images and icon files.
 
 ## Download
 
