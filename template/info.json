@@ -4,7 +4,7 @@
 	"author": "%s",
 	"bpm": "%s",
 	"scene": "%s",
-	"searchTags": [],
+	"searchTags": [%s],
 	"levelDesigner": "%s",
 	"levelDesigner1": "%s",
 	"levelDesigner2": "%s",
@@ -15,7 +15,5 @@
 	"difficulty3": "%s",
 	"difficulty4": "%s",
 	"hideBmsMode": "%s",
-	"hideBmsDifficulty": "0",
-	"hideBmsMessage": "%s",
-	"unlockLevel": "0"
+	"hideBmsMessage": "%s"%s
 }

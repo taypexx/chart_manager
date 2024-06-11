@@ -136,7 +136,7 @@ archive_icon = sys.File(corepath.."/assets/ico/archive.ico")
 --// Start menu
 start_win = ui.Window("Chart Manager "..version,"single",700,500)
 start_win:loadicon(corepath.."/icon.ico")
-start_win.bgcolor = consts.bgcolor
+start_win.bgcolor = consts.startbgcolor
 start_win.font = consts.font
 start_win.fontstyle = {["bold"] = true}
 start_win:center()
@@ -148,7 +148,7 @@ local credits = ui.Label(start_win,"Made by @taypexx",580,480,175,25)
 credits.tooltip = "Feel free to contact me in discord! =3"
 credits.fontsize = 10
 credits.fgcolor = 0xffffff
-credits.bgcolor = consts.bgcolor
+credits.bgcolor = consts.startbgcolor
 bg:toback(credits)
 
 credits.onClick = function ()
@@ -223,18 +223,6 @@ download_button.onClick = function ()
     start_win.visible = false
     start_win.enabled = false
     download_mode.run()
-end
-
----------------------------------------
-
-forbidden_chars = {"{","}",'"'}
-function check_for_chars(str)
-    for _,char in pairs(forbidden_chars) do
-        if string.find(str,char) then
-            return false,char
-        end
-    end
-    return true
 end
 
 ---------------------------------------
@@ -390,9 +378,10 @@ function chart_pack(win,progressbar)
     if not info then return end
     infoFile:close()
     
-    local chartname = info.name
-    --chartname = chartname:gsub('%W','') -- removing all non alphanumeric characters
-
+    local chartname = utils.removeForbiddenWindowsCharacters(info.name)
+    if not utils.checkForValidWindowsName(chartname) then
+        chartname = chartname.."0"
+    end
     local mdmname = chartname..".zip"
     sys.currentdir = targetdir
     local mdm

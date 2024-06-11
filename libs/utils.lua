@@ -1,5 +1,83 @@
 local utils = {}
 
+--// Removes unnecessary spaces from a string
+---@param str string String to edit
+---@return string
+function utils.removeSpaces(str)
+  local edited_string = ""
+  local split_str = utils.split(str,"")
+  local wereOtherChars = false
+  for i,char in pairs(split_str) do
+    if wereOtherChars or char ~= " " then
+      if not (i == #split_str and char == " ")  then
+        wereOtherChars = true
+        edited_string = edited_string..char
+      end
+    end
+  end
+  return edited_string
+end
+
+local reservedWindowsNames = {
+  "CON","PRN","AUX","NUL",
+  "COM1","COM2","COM3","COM4","COM5","COM6","COM7","COM8","COM9","COM0",
+  "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", "LPT0",
+}
+
+--// Checks if a string is not reserved by windows
+---@param str string String to check
+---@return boolean
+---@return boolean,string
+function utils.checkForValidWindowsName(str)
+  for _,reservedName in pairs(reservedWindowsNames) do
+    if string.upper(str) == reservedName then
+      return false,string.format([[Name "%s" is reserved by Windows.]],str)
+    end
+  end
+  return true
+end
+
+local forbiddenWindowsCharacters = {
+  "<",">",[["]],":","/","\\","|","?","*"
+}
+
+--// Removes forbidden windows characters from the string
+---@param str string String to edit
+---@return string
+function utils.removeForbiddenWindowsCharacters(str)
+  local chars = utils.split(str,"")
+  local edited_str = ""
+  for _,char in pairs(chars) do
+    local isForbidden = false
+    for _,forbChar in pairs(forbiddenWindowsCharacters) do
+      if char == forbChar then
+        isForbidden = true
+      end
+    end
+    if not isForbidden then
+      edited_str = edited_str..char
+    end
+  end
+  return edited_str
+end
+
+local forbidden_json_chars = {
+  "{","}",'"'
+}
+
+--// Checks if a field contains forbidden json characters
+---@param str string String to check
+---@return boolean
+---@return boolean,string
+function utils.checkForValidJsonField(str)
+  for _,char in pairs(forbidden_json_chars) do
+    if string.find(str,char) then
+        return false,string.format([[Character %s is not allowed.]],char)
+    end
+  end
+  return true
+end
+
 --// Reads content from the json file and returns decoded table
 ---@param filepath string Filepath of the json file
 ---@return table

@@ -93,10 +93,13 @@
 #WAV2K Flashbang END
 #WAV2N BG Stop ON
 #WAV2O BG Stop OFF
-#WAV2P Mosaic ON
+#WAV2P Mosaic ON 
 #WAV2Q Mosaic OFF
 #WAV2R Sepia ON
 #WAV2S Sepia OFF
+#WAV2T Focus Lines BLACK
+#WAV2U Focus Lines WHITE
+#WAV2V Focus Lines OFF
 #WAV2Y Autoplay ON
 #WAV2Z Autoplay OFF
 #WAV30 Medium Bullet
@@ -115,7 +118,9 @@
 #WAV3D Boss Bullet 1 (Laneshift)
 #WAV3E Boss Bullet 2
 #WAV3F Boss Bullet 2 (Laneshift)
-
+#WAV3G
+#WAV3H
+#WAV3I
 
 
 *---------------------- MAIN DATA FIELD

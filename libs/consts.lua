@@ -1,6 +1,7 @@
 return {
 
-    bgcolor = 0x340a42,
+    startbgcolor = 0x2f2f2f,
+    bgcolor = 0x37262c,--0x76103b,
     font = "Calibri",
     github = "https://github.com/taypexx/chart_manager/",
     yt = "https://youtube.com/channel/UCrmB0yne92J9C042I8-Qy9g/",
