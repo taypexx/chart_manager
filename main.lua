@@ -61,6 +61,7 @@ if settings_file then
         settings = {
             music_offset = "",
             bms_editor = "",
+            muse_dash = ""
         }
     end
     settings_file:close()
@@ -489,3 +490,4 @@ end
 
 ui.run(start_win)
 waitall()
+SaveSettings()
