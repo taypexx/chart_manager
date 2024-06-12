@@ -490,3 +490,4 @@ end
 
 ui.run(start_win)
 waitall()
+SaveSettings()
