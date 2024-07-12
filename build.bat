@@ -1,5 +1,6 @@
 set buildraw=build/raw
 set buildpath=build/compiled
+set innosetup="C:/Program Files/Inno Setup 5/Compil32.exe"
 
 rd /q /s "%buildraw%"
 rd /q /s "%buildpath%"
@@ -29,6 +30,8 @@ mkdir "%buildpath%/template"
 robocopy /s "template" "%buildpath%/template"
 mkdir "%buildpath%/assets"
 robocopy /s "assets" "%buildpath%/assets"
+
+%innosetup% /cc "setup.iss"
 
 echo Build success
 pause
