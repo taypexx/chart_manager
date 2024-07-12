@@ -1,3 +1,3 @@
-# v2.1.1
+# v2.1.2
 
-Fixed critical issue with saving muse dash path
+Small bug fix and code organisation

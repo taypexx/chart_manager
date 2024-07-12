@@ -25,6 +25,8 @@ if version_file then
 
     pcall(coroutine.wrap(function()
         net.Http("https://raw.githubusercontent.com"):get("/taypexx/chart_manager/main/version").after = function (client, response)
+            if not response then return end
+            
             local available_version
             if response.status ~= 200 then
                 available_version = "v1.0.1"
