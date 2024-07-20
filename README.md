@@ -8,19 +8,19 @@ Chart manager is a program that helps you create and edit custom charts for Muse
 
 Before making charts you need to select a chart folder:
 
-![image](https://github.com/taypexx/chart_manager/assets/102821080/ca4af372-8f9d-49f2-a23a-5a845f484460)
+![image](https://github.com/user-attachments/assets/ecc35b65-5f8d-4735-ad83-e5861694930b)
 
 ### Creating
 
 Fill these fields for your chart and select files for it:
 
-![image](https://github.com/taypexx/chart_manager/assets/102821080/b56d7881-c8a7-4280-9d96-87b2769b8695)
+![image](https://github.com/user-attachments/assets/64434d90-2c1d-42ef-abcd-45965ce3c4cc)
 
 Cover, demo and music files are __required__. Cover is .png/.gif, demo and music are .mp3/.ogg. Cinema video supports .mp4
 
-![image](https://github.com/taypexx/chart_manager/assets/102821080/bbbe65ea-343c-4bb8-a049-4f8d2c92ed3b)
+![image](https://github.com/user-attachments/assets/f2a37148-6160-49e0-9bc7-3e0be462b62b)
 
-After you fillupa the fields simply click "Generate chart files". Chart files will be generated in the selected folder
+After you fill up the fields simply click "Generate chart files". Chart files will be generated in the selected folder
 
 ![image](https://github.com/taypexx/chart_manager/assets/102821080/0cc015ae-bf9b-4f9e-a523-09b621033ab3)
 
@@ -41,7 +41,7 @@ In the "Open" tab you can open some files of your chart or open the entire folde
 
 MDMC menu contains some links.
 
-![image](https://github.com/taypexx/chart_manager/assets/102821080/f65a8e18-3ca5-4577-9f63-40dcaae509f4)
+![image](https://github.com/user-attachments/assets/d9f91c8d-c2cc-4f49-9a1e-8c30986251ac)
 
 If you need some help with charting you can find some [docs](https://github.com/taypexx/chart_manager/tree/main/assets) in the Help tab. 
 
@@ -55,7 +55,7 @@ Custom_Albums folder.
 If you haven't packed the chart yet and you want to save it to custom albums folder
 the program will ask you to do it.
 
-![image](https://github.com/taypexx/chart_manager/assets/102821080/ff3bff43-7f79-456b-ab3f-b5ed716911ef)
+![image](https://github.com/user-attachments/assets/925dc3f5-b541-4c39-83bf-da3e8386cd84)
 
 ## Custom Background
 
