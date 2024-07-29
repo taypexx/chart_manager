@@ -154,7 +154,7 @@ if version_file then
             if tonumber(avail_v) > tonumber(current_v) then
                 local result = ui.confirm(string.format(lang.new_version.desc,available_version),lang.new_version.title)
                 if result == "yes" then
-                    sys.cmd([[explorer "%sreleases/"]],consts.github)
+                    sys.cmd([[explorer "%sreleases"]],consts.github)
                 end
             end
         end
