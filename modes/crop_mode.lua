@@ -8,64 +8,68 @@ function crop_mode.run()
     win.font = consts.font
     win.fontstyle = {["bold"] = true}
     win:center()
-    win:status("> Idle")
+    win:status(lang.status_bar.idle)
 
-    function win:onClose()
-        clearTemp()
-        SaveSettings()
-        sys.exit()
-        --discord.shutdownRPC()
-    end
+    win.onClose = SaveAndExit
 
     --// Top menu setup
 
-    win_menu = ui.Menu("Run MuseDash","Exit")
+    win_menu = ui.Menu(lang.menu_bar.run_musedash,lang.menu_bar.exit)
     win.menu = win_menu 
     local mdmc_menu = ui.Menu()
-    local mdmc_buttons = {mdmc_menu:insert(1,"Home"),mdmc_menu:insert(2,"Upload"),mdmc_menu:insert(3,"Charts"),mdmc_menu:insert(4,"Discord")}
+    local mdmc_buttons = {
+        mdmc_menu:insert(1,lang.menu_bar.mdmc.home),
+        mdmc_menu:insert(2,lang.menu_bar.mdmc.upload),
+        mdmc_menu:insert(3,lang.menu_bar.mdmc.charts),
+        mdmc_menu:insert(4,lang.menu_bar.mdmc.discord)
+    }
 
     function mdmc_menu_func(item)
-        if item.text == "Home" then
+        if item.text == lang.menu_bar.mdmc.home then
             sys.cmd([[explorer "https://mdmc.moe/"]])
-        elseif item.text == "Upload" then
+        elseif item.text == lang.menu_bar.mdmc.upload then
             sys.cmd([[explorer "https://mdmc.moe/upload"]])
-        elseif item.text == "Charts" then
+        elseif item.text == lang.menu_bar.mdmc.charts then
             sys.cmd([[explorer "https://mdmc.moe/charts"]])
-        elseif item.text == "Discord" then
+        elseif item.text == lang.menu_bar.mdmc.discord then
             sys.cmd([[explorer "https://discord.gg/mdmc"]])
         end
     end
 
     for _,button in pairs(mdmc_buttons) do
         button.onClick = mdmc_menu_func
-        if button.text == "Discord" then
+        if button.text == lang.menu_bar.mdmc.discord then
             button:loadicon(discord_icon)
         else
             button:loadicon(melon_icon)
         end
     end
 
-    win.menu:insert(1, "MDMC", mdmc_menu)
+    win.menu:insert(1,lang.menu_bar.mdmc.title, mdmc_menu)
 
     ---------------------------------------
 
     local program_select_menu = ui.Menu()
-    local program_select_buttons = {program_select_menu:insert(1,"BMS"),program_select_menu:insert(2,"Offset"),program_select_menu:insert(3,"Muse Dash")}
+    local program_select_buttons = {
+        program_select_menu:insert(1,lang.menu_bar.program_select.bms),
+        program_select_menu:insert(2,lang.menu_bar.program_select.offset),
+        program_select_menu:insert(3,lang.menu_bar.program_select.musedash)
+    }
 
     for _,button in pairs(program_select_buttons) do
-        if button.text == "BMS" then
+        if button.text == lang.menu_bar.program_select.bms then
             button.onClick = select_BMS_programm
             button:loadicon(bms_icon) 
-        elseif button.text == "Offset" then
+        elseif button.text == lang.menu_bar.program_select.offset then
             button.onClick = select_offset_programm
             button:loadicon(offset_icon)
-        elseif button.text == "Muse Dash" then
+        elseif button.text == lang.menu_bar.program_select.musedash then
             button.onClick = prompt_musedash_program
             button:loadicon(md_icon)
         end
     end
 
-    win.menu:insert(2, "Select Programs",program_select_menu)
+    win.menu:insert(2,lang.menu_bar.program_select.title,program_select_menu)
 
     ---------------------------------------
 
@@ -74,7 +78,7 @@ function crop_mode.run()
         [2] = {"Understanding Muse Dash Chart Structure",""},
         [3] = {"Offsetting Charts With Adobe Audition (AU)",""}, 
         [4] = {"Quick MDBMSC Setup Guide","https://docs.google.com/document/d/1wYgaUv_sX6IxUv-KjiRRv68Jg82xH0GG21ySRs8zigk/preview"},
-        [5] = {"Github",consts.github}
+        [5] = {lang.main.github,consts.github}
     }
 
     local help_docs_menu = ui.Menu()
@@ -103,20 +107,20 @@ function crop_mode.run()
 
     for _,button in pairs(help_docs_buttons) do
         button.onClick = help_doc_open
-        if button.text == "Github" then
+        if button.text == lang.main.github then
             button:loadicon(github_icon) 
         else
             button:loadicon(help_icon) 
         end
     end
 
-    win.menu:insert(3, "Help", help_docs_menu)
+    win.menu:insert(3,lang.menu_bar.help, help_docs_menu)
 
     ---------------------------------------
 
     win.menu.items[4].onClick = function ()
         if not settings.muse_dash or settings.muse_dash == "" then
-            local response = ui.confirm("Muse Dash path wasn't selected. Do you want to select it?","No Muse Dash path")
+            local response = ui.confirm(lang.info_msgs.no_musedash_path.desc,lang.info_msgs.no_musedash_path.title)
             if response == "yes" then
                 local selected = prompt_musedash_program()
                 if selected == "" then return end
@@ -125,11 +129,7 @@ function crop_mode.run()
         sys.cmd(string.format([[""%s"]],settings.muse_dash))
     end
 
-    win.menu.items[5].onClick = function ()
-        SaveSettings()
-        clearTemp()
-        sys.exit()
-    end
+    win.menu.items[5].onClick = SaveAndExit
 
     ---------------------------------------
 
@@ -151,19 +151,19 @@ function crop_mode.run()
     bg.height = bg_height
     bg:center()
 
-    local title_select = ui.Label(win,"Chart to crop",25,25,175,35)
+    local title_select = ui.Label(win,lang.crop_mode.chart_to_crop,25,25,175,35)
     title_select.fontsize = 18
     title_select.fgcolor = 0xFFFFFF
     bg:toback(title_select)
     
-    local button_select = ui.Button(win,"Select a chart file",225,25)
+    local button_select = ui.Button(win,lang.crop_mode.select_chart_file,225,25)
     button_select:loadicon(melon_icon)
     button_select.fontsize = 14
     button_select.width = 175
     button_select.height = 35
     bg:toback(button_select)
     button_select.onClick = function ()
-        selected_chart = ui.opendialog("Select the chart file", false, "MDM chart|*.mdm")
+        selected_chart = ui.opendialog(lang.crop_mode.select_chart_win.title, false, lang.crop_mode.select_chart_win.filetype)
         if selected_chart then
             button_select.text = selected_chart.name
             button_select.fontsize = 10
@@ -173,12 +173,12 @@ function crop_mode.run()
 
     local progressbar = ui.Progressbar(win,27,9999,350,20)
 
-    local title_maps = ui.Label(win,"Target map",25,75,175,35)
+    local title_maps = ui.Label(win,lang.crop_mode.target_map,25,75,175,35)
     title_maps.fontsize = 18
     title_maps.fgcolor = 0xFFFFFF
     bg:toback(title_maps)
 
-    local button_save = ui.Button(win,"Save to Muse Dash",215,400)
+    local button_save = ui.Button(win,lang.crop_mode.save_to_musedash,215,400)
     button_save.fontsize = 14
     button_save:loadicon(md_icon)
     button_save.width = 185
@@ -195,7 +195,7 @@ function crop_mode.run()
         local bms_map = sys.File(bms_path)
         if not bms_map.exists then
             buttondb = false
-            ui.error("Error opening bms map! This chart doesn't have "..list_maps.text,"Error")
+            ui.error(string.format(lang.error_msgs.crop_mode.no_bms,list_maps.text),lang.error_msgs.error)
             return
         end
 
@@ -261,7 +261,7 @@ function crop_mode.run()
 
         if not cut_time then
             buttondb = false
-            ui.error("You didn't add Crop object!","Error")
+            ui.error(lang.error_msgs.crop_mode.no_crop_object,lang.error_msgs.error)
             return
         end
 
@@ -279,7 +279,7 @@ function crop_mode.run()
         end
         if not music_file.exists then
             buttondb = false
-            ui.error("Chart doesn't have a music file!","Error")
+            ui.error(lang.error_msgs.crop_mode.no_music,lang.error_msgs.error)
             return
         end
         local music_extension = string.sub(music_file.name,-3,-1)
@@ -287,7 +287,7 @@ function crop_mode.run()
 
         if not rename_success then
             buttondb = false
-            ui.error("Failed to rename music file!","Error")
+            ui.error(lang.error_msgs.crop_mode.music_rename_fail,lang.error_msgs.error)
             return
         end
 
@@ -303,7 +303,7 @@ function crop_mode.run()
 
         if not musiccrop_success then
             buttondb = false
-            ui.error("Failed to crop music file!","Error")
+            ui.error(lang.error_msgs.crop_mode.music_crop_fail,lang.error_msgs.error)
             return
         end
 
@@ -313,7 +313,7 @@ function crop_mode.run()
         local info_file = sys.File(info_path)
         if not info_file.exists then
             buttondb = false
-            ui.error("info.json not found!","Error")
+            ui.error(lang.error_msgs.crop_mode.no_info,lang.error_msgs.error)
             return
         end
         info_file:open("read","utf8")
@@ -382,7 +382,7 @@ function crop_mode.run()
         local mdm_chart = check_for_mdm()
         if not mdm_chart then
             buttondb = false
-            ui.error("Failed to pack MDM chart!","Error")
+            ui.error(lang.error_msgs.crop_mode.chart_pack_fail,lang.error_msgs.error)
             return
         end
 
@@ -391,13 +391,13 @@ function crop_mode.run()
     
         mdm_chart:move(charts_path.."/"..mdm_chart.name)
 
-        ui.msg("Successfully cropped your chart. You can now run Muse Dash and play your cropped version.","Success")
+        ui.msg(lang.info_msgs.chart_crop_success,lang.info_msgs.success)
         win:status("> Idle")
         clearTemp()
         buttondb = false
     end
 
-    local button_crop = ui.Button(win,"Choose the map",25,400)
+    local button_crop = ui.Button(win,lang.crop_mode.choose_map,25,400)
     button_crop:loadicon(bms_icon)
     button_crop.fontsize = 14
     button_crop.width = 175
@@ -407,7 +407,7 @@ function crop_mode.run()
     button_crop.onClick = function ()
         if buttondb then return end
         if settings.bms_editor == "" or not settings.bms_editor then
-            local result = ui.confirm("You didn't select BMS editor program. Would you like to do it?","No BMS editor found")
+            local result = ui.confirm(lang.info_msgs.no_bms_editor.desc,lang.info_msgs.no_bms_editor.title)
             if result == "yes" then
                 local selected = select_BMS_programm()
                 if not selected then return end
@@ -415,7 +415,7 @@ function crop_mode.run()
         end
 
         if not settings.muse_dash or settings.muse_dash == "" then
-            local response = ui.confirm("Muse Dash path wasn't selected. Do you want to select it?","No Muse Dash path")
+            local response = ui.confirm(lang.info_msgs.no_musedash_path.desc,lang.info_msgs.no_musedash_path.title)
             if response == "yes" then
                 local selected = prompt_musedash_program()
                 if selected == "" then return end
@@ -428,14 +428,14 @@ function crop_mode.run()
         local chart_copy = selected_chart:copy(targetdir.."\\TEMP.zip")
         if not chart_copy then
             buttondb = false
-            ui.error("Error copying chart! Please report this bug on github and provide some information","Error")
+            ui.error(lang.error_msgs.crop_mode.chart_copy_fail,lang.error_msgs.error)
             return
         end
 
         local arch = compression.Zip(chart_copy)
         if not arch then
             buttondb = false
-            ui.error("Error opening chart!","Error")
+            ui.error(lang.error_msgs.crop_mode.chart_open_fail,lang.error_msgs.error)
             return
         end
 
@@ -443,7 +443,7 @@ function crop_mode.run()
         if not extracted then
             arch:close()
             buttondb = false
-            ui.error("Error extracting chart contents!","Error")
+            ui.error(lang.error_msgs.crop_mode.chart_extract_fail,lang.error_msgs.error)
             return
         end
 
@@ -454,7 +454,7 @@ function crop_mode.run()
         local bms_map = sys.File(bms_path)
         if not bms_map.exists then
             buttondb = false
-            ui.error("Error opening bms map! This chart doesn't have "..list_maps.text,"Error")
+            ui.error(string.format(lang.error_msgs.crop_mode.no_bms,list_maps.text),lang.error_msgs.error)
             return
         end
 
@@ -479,7 +479,7 @@ function crop_mode.run()
 
         bms_map:close()
 
-        ui.info(string.format([[BMS editor will open. Find "%s: Crop object" and place it on any line. This object will define where the chart should be cropped at.]],consts.bms_crop_value),"Cropping")
+        ui.info(string.format(lang.crop_mode.cropping_info.desc,consts.bms_crop_value),lang.crop_mode.cropping_info.title)
 
         sys.cmd(string.format('""%s" "%s"',settings.bms_editor,bms_path))
 
@@ -487,8 +487,7 @@ function crop_mode.run()
         buttondb = false
     end
 
-    list_maps = ui.Combobox(win,{"map1","map2","map3","map4"},
-    225,75,175,200)
+    list_maps = ui.Combobox(win,{"map1","map2","map3","map4"},225,75,175,200)
     list_maps.fontsize = 16
     list_maps.fontstyle = {["bold"] = false}
     list_maps.text = ""
@@ -496,11 +495,11 @@ function crop_mode.run()
         local active = list_maps.text ~= ""
         button_crop.enabled = active and selected_chart
         if active and selected_chart then
-            button_crop.text = "Crop the "..list_maps.text
+            button_crop.text = string.format(lang.crop_mode.crop_map,list_maps.text)
         elseif active then
-            button_crop.text = "Select a chart"
+            button_crop.text = lang.crop_mode.select_chart_file
         elseif selected_chart then
-            button_crop.text = "Choose the map"
+            button_crop.text = lang.crop_mode.choose_map
         end
     end
     bg:toback(list_maps)

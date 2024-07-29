@@ -1,5 +1,44 @@
 local utils = {}
 
+--// Searches for a value recursively
+---@param t table Table to search in
+---@param k any Key of the table
+---@return any
+function utils.tableFindRecursive(t,k)
+  for k1,v1 in pairs(t) do
+    if k1 == k then
+      return v1
+    end
+    for k2,v2 in pairs(v1) do
+      if k2 == k then
+        return v2
+      end
+    end
+  end
+end
+
+--// Returns first element of the table
+---@param t table
+---@return any,any
+function utils.firstElement(t) 
+  for k,v in pairs(t) do
+    return k,v
+  end
+end
+
+--// Returns a table containing indexes of the given table
+---@param t table Table with indexes
+---@return table
+function utils.getIndexes(t)
+  local it = {}
+  local n = 0
+  for i,_ in pairs(t) do
+    n = n+1
+    it[n] = i
+  end
+  return it
+end
+
 --// Removes unnecessary spaces from a string
 ---@param str string String to edit
 ---@return string

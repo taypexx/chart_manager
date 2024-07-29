@@ -14,6 +14,8 @@ mkdir "%buildraw%/libs"
 robocopy /s "libs" "%buildraw%/libs"
 mkdir "%buildraw%/modes"
 robocopy /s "modes" "%buildraw%/modes"
+mkdir "%buildraw%/lang"
+robocopy /s "lang" "%buildraw%/lang"
 
 rtc -w -i "icon.ico" -o "%buildpath%/chart_manager.exe" -lnet "%buildraw%" main.lua
 

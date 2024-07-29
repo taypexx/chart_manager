@@ -6,7 +6,9 @@
         "deprecated",
         "return-type-mismatch",
         "cast-local-type",
-        "missing-return-value"
+        "missing-return-value",
+        "undefined-field",
+        "need-check-nil"
     ],
     "Lua.diagnostics.globals": [
         "sys",

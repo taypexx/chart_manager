@@ -24,11 +24,7 @@ function download_mode.run()
     win.fontstyle = {["bold"] = true}
     win:center()
 
-    function win:onClose()
-        SaveSettings()
-        sys.exit()
-        --discord.shutdownRPC()
-    end
+    win.onClose = SaveAndExit
 
     local bg = ui.Picture(win,corepath.."/assets/bg.png",0,0)
     local bg_ratio = (bg.width/bg.height)

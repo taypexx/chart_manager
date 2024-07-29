@@ -7,8 +7,8 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId={{67B5AD3E-DC1F-4CCA-A5B8-FD7299BBD9D8}
 AppName=Chart Manager
-AppVersion=2.1.2
-;AppVerName=Chart Manager 2.1.2
+AppVersion=2.2.0
+;AppVerName=Chart Manager 2.2.0
 AppPublisher=taypexx
 AppPublisherURL=https://github.com/taypexx/chart_manager
 AppSupportURL=https://github.com/taypexx/chart_manager
@@ -18,13 +18,16 @@ DefaultGroupName=Chart Manager
 AllowNoIcons=yes
 LicenseFile=E:\taypexx\Code\Programs\chart_manager\build\compiled\LICENSE
 OutputDir=E:\taypexx\Code\Programs\chart_manager\build\compiled
-OutputBaseFilename=chart_manager_v2.1.2
+OutputBaseFilename=chart_manager_v2.2.0
 SetupIconFile=E:\taypexx\Code\Programs\chart_manager\build\compiled\icon.ico
 Compression=lzma
 SolidCompression=yes
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
+Name: "spanish"; MessagesFile: "compiler:Languages\Spanish.isl"
+Name: "german"; MessagesFile: "compiler:Languages\German.isl"
+Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked

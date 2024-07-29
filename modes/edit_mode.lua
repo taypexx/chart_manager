@@ -2,7 +2,7 @@ local edit_mode = {}
 local box_chartname,progressbar
 
 function select_BMS_programm()
-    local editor = ui.opendialog("Select BMS editor program",false,"Executable file (*.exe)|*.exe")
+    local editor = ui.opendialog(lang.file_select.bms_editor.title,false,lang.file_select.bms_editor.filetype)
     if not editor then return end
     settings.bms_editor = editor.fullpath
     SaveSettings()
@@ -10,7 +10,7 @@ function select_BMS_programm()
 end
 
 function select_offset_programm()
-    local editor = ui.opendialog("Select offset editor program",false,"Executable files (*.exe)|*.exe")
+    local editor = ui.opendialog(lang.file_select.offset_editor.title,false,lang.file_select.offset_editor.filetype)
     if not editor then return end
     settings.music_offset = editor.fullpath
     SaveSettings()
@@ -19,12 +19,12 @@ end
 
 function offset_track(win,item)
     if not targetdir then
-        ui.error("You need to select chart folder!","Failed to offset")
+        ui.error(lang.error_msgs.no_chart_folder,lang.error_msgs.edit_mode.offset_fail)
         return
     end
 
     if settings.music_offset == "" or not settings.music_offset then
-        local result = ui.confirm("You didn't select a program for music offsetting. Would you like to do it?","No offset program found")
+        local result = ui.confirm(lang.info_msgs.no_offset_editor.desc,lang.info_msgs.no_offset_editor.title)
         if result == "yes" then
             local selected = select_offset_programm()
             if not selected then return end
@@ -39,18 +39,16 @@ function offset_track(win,item)
         track = io.open(track_path,"r")
     end
     if not track then
-        ui.error(string.format("No %s file was found in chart folder!",track_name),"Failed to offset")
+        ui.error(string.format(lang.error_msgs.edit_mode.no_file_found,track_name),lang.error_msgs.edit_mode.offset_fail)
         return
     end
     track:close()
 
     local launch_cmd = string.format('""%s" "%s"',settings.music_offset,track_path)
     coroutine.wrap(function ()
-        win:status("> Offsetting "..track_name.."...")
-        --discord.setState("offset",track_name)
+        win:status(string.format(lang.status_bar.offsetting,track_name))
         sys.cmd(launch_cmd)
-        win:status("> Idle")
-        --discord.setState("create")
+        win:status(lang.status_bar.idle)
     end)()
 end
 
@@ -62,77 +60,84 @@ function edit_mode.run()
     win.font = consts.font
     win.fontstyle = {["bold"] = true}
     win:center()
-    win:status("> Idle")
+    win:status(lang.status_bar.idle)
     
-    function win:onClose()
-        SaveSettings()
-        sys.exit()
-        --discord.shutdownRPC()
-    end
+    win.onClose = SaveAndExit
 
     --// Top menu setup
 
-    win_menu = ui.Menu("Run Muse Dash","Exit")
+    win_menu = ui.Menu(lang.menu_bar.run_musedash,lang.menu_bar.exit)
     win.menu = win_menu 
     local mdmc_menu = ui.Menu()
-    local mdmc_buttons = {mdmc_menu:insert(1,"Home"),mdmc_menu:insert(2,"Upload"),mdmc_menu:insert(3,"Charts"),mdmc_menu:insert(4,"Find Current Chart"),mdmc_menu:insert(5,"Discord")}
+    local mdmc_buttons = {
+        mdmc_menu:insert(1,lang.menu_bar.mdmc.home),
+        mdmc_menu:insert(2,lang.menu_bar.mdmc.upload),
+        mdmc_menu:insert(3,lang.menu_bar.mdmc.charts),
+        mdmc_menu:insert(4,lang.menu_bar.mdmc.find_current_chart),
+        mdmc_menu:insert(5,lang.menu_bar.mdmc.discord)
+    }
 
     function mdmc_menu_func(item)
-        if item.text == "Home" then
+        if item.text == lang.menu_bar.mdmc.home then
             sys.cmd([[explorer "https://mdmc.moe/"]])
-        elseif item.text == "Upload" then
+        elseif item.text == lang.menu_bar.mdmc.upload then
             sys.cmd([[explorer "https://mdmc.moe/upload"]])
-        elseif item.text == "Charts" then
+        elseif item.text == lang.menu_bar.mdmc.charts then
             sys.cmd([[explorer "https://mdmc.moe/charts"]])
-        elseif item.text == "Find Current Chart" then
+        elseif item.text == lang.menu_bar.mdmc.find_current_chart then
             if box_chartname.text ~= "" then
                 sys.cmd(string.format([[explorer "https://mdmc.moe/charts?search=%s"]],box_chartname.text)) 
             else
-                ui.error("Current chart name is empty","Failed to find")
+                ui.error(lang.error_msgs.edit_mode.empty_chart_name,lang.error_msgs.error)
             end
-        elseif item.text == "Discord" then
+        elseif item.text == lang.menu_bar.mdmc.discord then
             sys.cmd(string.format([[explorer "%s"]],consts.discord))
         end
     end
 
     for _,button in pairs(mdmc_buttons) do
         button.onClick = mdmc_menu_func
-        if button.text == "Discord" then
+        if button.text == lang.menu_bar.mdmc.discord then
             button:loadicon(discord_icon)
         else
             button:loadicon(melon_icon)
         end
     end
 
-    win.menu:insert(1, "MDMC", mdmc_menu)
+    win.menu:insert(1,lang.menu_bar.mdmc.title,mdmc_menu)
 
     ---------------------------------------
 
     local file_open_menu = ui.Menu()
-    local file_open_buttons = {file_open_menu:insert(1,"Chart Folder"),file_open_menu:insert(2,"Muse Dash Folder"),file_open_menu:insert(3,"info"),file_open_menu:insert(4,"cover")}
+    local file_open_buttons = {
+        file_open_menu:insert(1,lang.menu_bar.open.chart_folder),
+        file_open_menu:insert(2,lang.menu_bar.open.musedash_folder),
+        file_open_menu:insert(3,lang.menu_bar.open.info),
+        file_open_menu:insert(4,lang.menu_bar.open.cover)
+    }
 
     function file_open_menu_func(item)
-        if item.text == "Muse Dash Folder" then
+        if item.text == lang.menu_bar.open.musedash_folder then
             if not settings.muse_dash or settings.muse_dash == "" then
-                ui.error("You need to select Muse Dash path!","Failed to open")
+                ui.error(lang.error_msgs.edit_mode.no_musedash_path,lang.error_msgs.edit_mode.open_fail)
                 return
             end
             sys.cmd(string.format([[explorer "%s"]],string.sub(settings.muse_dash,1,-13)))
             return
         end
         if not targetdir then
-            ui.error("You need to select chart folder!","Failed to open")
+            ui.error(lang.error_msgs.no_chart_folder,lang.error_msgs.edit_mode.open_fail)
             return
         end
-        if item.text == "Chart Folder" then
+        if item.text == lang.menu_bar.open.chart_folder then
             sys.cmd(string.format([[explorer "%s"]],targetdir))
-        elseif item.text == "info" then
+        elseif item.text == lang.menu_bar.open.info then
             coroutine.wrap(function (...)
-                win:status("> Viewing info.json...")
+                win:status(lang.status_bar.viewing_info)
                 sys.cmd(string.format([["%s"]],targetdir.."\\info.json"))
-                win:status("> Idle")
+                win:status(lang.status_bar.idle)
             end)()
-        elseif item.text == "cover" then
+        elseif item.text == lang.menu_bar.open.cover then
             local filename = "cover.png"
             local f = io.open(targetdir.."\\"..filename,"r")
             if not f then
@@ -141,27 +146,27 @@ function edit_mode.run()
                 f:close()
             end
             coroutine.wrap(function (...)
-                win:status(string.format("> Viewing %s...",filename))
+                win:status(string.format(lang.status_bar.viewing_file,filename))
                 sys.cmd(string.format([["%s"]],targetdir.."\\"..filename))
-                win:status("> Idle")
+                win:status(lang.status_bar.idle)
             end)()
         end
     end
 
     for _,button in pairs(file_open_buttons) do
         button.onClick = file_open_menu_func
-        if button.text == "Chart Folder" then
+        if button.text == lang.menu_bar.open.chart_folder then
             button:loadicon(melon_icon)
-        elseif button.text == "info" then
+        elseif button.text == lang.menu_bar.open.info then
             button:loadicon(file_icon)
-        elseif button.text == "cover" then
+        elseif button.text == lang.menu_bar.open.cover then
             button:loadicon(photo_icon)
-        elseif button.text == "Muse Dash Folder" then
+        elseif button.text == lang.menu_bar.open.musedash_folder then
             button:loadicon(md_icon)
         end
     end
 
-    win.menu:insert(2, "Open", file_open_menu)
+    win.menu:insert(2,lang.menu_bar.open.title,file_open_menu)
 
     ---------------------------------------
 
@@ -175,7 +180,7 @@ function edit_mode.run()
         button:loadicon(music_icon)
     end
 
-    win.menu:insert(3, "Offset", offset_edit_menu)
+    win.menu:insert(3, lang.menu_bar.offset, offset_edit_menu)
 
     ---------------------------------------
 
@@ -184,12 +189,12 @@ function edit_mode.run()
 
     function bms_edit_menu_func(item)
         if not targetdir then
-            ui.error("You need to select chart folder!","Failed to edit")
+            ui.error(lang.error_msgs.no_chart_folder,lang.error_msgs.edit_mode.edit_fail)
             return
         end
 
         if settings.bms_editor == "" or not settings.bms_editor then
-            local result = ui.confirm("You didn't select BMS editor program. Would you like to do it?","No BMS editor found")
+            local result = ui.confirm(lang.info_msgs.no_bms_editor.desc,lang.info_msgs.no_bms_editor.title)
             if result == "yes" then
                 local selected = select_BMS_programm()
                 if not selected then return end
@@ -200,18 +205,16 @@ function edit_mode.run()
         local map_path = targetdir.."\\"..map_name..".bms"
         local map_file = io.open(map_path,"r")
         if not map_file then
-            ui.error(string.format("No %s file was found in chart folder!",map_name),"Failed to edit")
+            ui.error(string.format(lang.error_msgs.edit_mode.no_file_found,map_name),lang.error_msgs.edit_mode.edit_fail)
             return
         end
         map_file:close()
 
         local launch_cmd = string.format('""%s" "%s"',settings.bms_editor,map_path)
         coroutine.wrap(function ()
-            win:status("> Editing "..map_name.."...")
-            --discord.setState("bms",map_name)
+            win:status(string.format(lang.status_bar.editing,map_name))
             sys.cmd(launch_cmd)
-            win:status("> Idle")
-            --discord.setState("create")
+            win:status(lang.status_bar.idle)
         end)()
     end
 
@@ -220,27 +223,31 @@ function edit_mode.run()
         button:loadicon(bms_icon)
     end
 
-    win.menu:insert(4, "Edit BMS", bms_edit_menu)
+    win.menu:insert(4, lang.menu_bar.edit_bms, bms_edit_menu)
 
     ---------------------------------------
 
     local program_select_menu = ui.Menu()
-    local program_select_buttons = {program_select_menu:insert(1,"BMS"),program_select_menu:insert(2,"Offset"),program_select_menu:insert(3,"Muse Dash")}
+    local program_select_buttons = {
+        program_select_menu:insert(1,lang.menu_bar.program_select.bms),
+        program_select_menu:insert(2,lang.menu_bar.program_select.offset),
+        program_select_menu:insert(3,lang.menu_bar.program_select.musedash)
+    }
 
     for _,button in pairs(program_select_buttons) do
-        if button.text == "BMS" then
+        if button.text == lang.menu_bar.program_select.bms then
             button.onClick = select_BMS_programm
             button:loadicon(bms_icon) 
-        elseif button.text == "Offset" then
+        elseif button.text == lang.menu_bar.program_select.offset then
             button.onClick = select_offset_programm
             button:loadicon(offset_icon)
-        elseif button.text == "Muse Dash" then
+        elseif button.text == lang.menu_bar.program_select.musedash then
             button.onClick = prompt_musedash_program
             button:loadicon(md_icon)
         end
     end
 
-    win.menu:insert(5, "Select Programs",program_select_menu)
+    win.menu:insert(5,lang.menu_bar.program_select.title,program_select_menu)
 
     ---------------------------------------
 
@@ -249,7 +256,7 @@ function edit_mode.run()
         [2] = {"Understanding Muse Dash Chart Structure",""},
         [3] = {"Offsetting Charts With Adobe Audition (AU)",""}, 
         [4] = {"Quick MDBMSC Setup Guide","https://docs.google.com/document/d/1wYgaUv_sX6IxUv-KjiRRv68Jg82xH0GG21ySRs8zigk/preview"},
-        [5] = {"Github",consts.github}
+        [5] = {lang.main.github,consts.github}
     }
 
     local help_docs_menu = ui.Menu()
@@ -278,20 +285,20 @@ function edit_mode.run()
 
     for _,button in pairs(help_docs_buttons) do
         button.onClick = help_doc_open
-        if button.text == "Github" then
+        if button.text == lang.main.github then
             button:loadicon(github_icon) 
         else
             button:loadicon(help_icon) 
         end
     end
 
-    win.menu:insert(6, "Help", help_docs_menu)
+    win.menu:insert(6,lang.menu_bar.help,help_docs_menu)
 
     ---------------------------------------
 
     win.menu.items[7].onClick = function ()
         if not settings.muse_dash or settings.muse_dash == "" then
-            local response = ui.confirm("Muse Dash path wasn't selected. Do you want to select it?","No Muse Dash path")
+            local response = ui.confirm(lang.info_msgs.no_musedash_path.desc,lang.info_msgs.no_musedash_path.title)
             if response == "yes" then
                 local selected = prompt_musedash_program()
                 if selected == "" then return end
@@ -300,10 +307,7 @@ function edit_mode.run()
         sys.cmd(string.format([[""%s"]],settings.muse_dash))
     end
 
-    win.menu.items[8].onClick = function ()
-        SaveSettings()
-        sys.exit()
-    end
+    win.menu.items[8].onClick = SaveAndExit
 
     --// Edit mode UI
 
@@ -323,19 +327,19 @@ function edit_mode.run()
     bg.height = bg_height
     bg:center()
 
-    local load_button = ui.Button(win, "Generate chart files", 25,650)
+    local load_button = ui.Button(win,lang.edit_mode.generate_files, 25,650)
     load_button:loadicon(bms_icon)
     load_button.fontsize = 14
     load_button.width = 185
     load_button.size = 35
 
-    local pack_button = ui.Button(win, "Pack files to MDM", 225,650)
+    local pack_button = ui.Button(win,lang.edit_mode.pack_files, 225,650)
     pack_button:loadicon(archive_icon)
     pack_button.fontsize = 14
     pack_button.width = 175
     pack_button.size = 35
 
-    local mdm_load_button = ui.Button(win, "Load MDM to Muse Dash", 415,650)
+    local mdm_load_button = ui.Button(win,lang.edit_mode.load_mdm, 415,650)
     mdm_load_button:loadicon(md_icon)
     mdm_load_button.fontsize = 14
     mdm_load_button.width = 230
@@ -344,91 +348,101 @@ function edit_mode.run()
     bg:toback(pack_button)
     bg:toback(mdm_load_button)
 -----------------------------------------------------------------------------
-    local title_main_fields = ui.Label(win,"Main fields",25,25,450,25)
+    local title_main_fields = ui.Label(win,lang.edit_mode.main_fields,25,25,450,25)
     title_main_fields.fontsize = 14
     title_main_fields.fgcolor = 0xFFFFFF
     bg:toback(title_main_fields)
 -----------------------------------------------------------------------------
-    local title_dir = ui.Label(win,"Chart folder",25,75,175,35)
+    local title_dir = ui.Label(win,lang.edit_mode.chart_folder,25,75,175,35)
     title_dir.fontsize = 18
     title_dir.fgcolor = 0xFFFFFF
     bg:toback(title_dir)
 
-    local choose_dir = ui.Button(win,"Click to browse directory",250,75)
+    local choose_dir = ui.Button(win,lang.edit_mode.select_folder,250,75)
     choose_dir:loadicon(melon_icon)
     choose_dir.fontsize = 14
     choose_dir.width = 225
     choose_dir.height = 35
     bg:toback(choose_dir)
 -----------------------------------------------------------------------------
-    local title_chartname = ui.Label(win,"Name",25,125,175,35)
+    local title_chartname = ui.Label(win,lang.edit_mode.name.title,25,125,175,35)
     title_chartname.fontsize = 18
     title_chartname.fgcolor = 0xFFFFFF
     bg:toback(title_chartname)
 
     box_chartname = ui.Entry(win,"",250,125,225,35)
-    box_chartname.tooltip = "Name of your chart"
+    box_chartname.tooltip = lang.edit_mode.name.tooltip
     box_chartname.fontsize = 12
     box_chartname.fontstyle = {["bold"] = false}
     bg:toback(box_chartname)
 -----------------------------------------------------------------------------
-    local title_artist = ui.Label(win,"Artist",25,175,175,35)
+    local title_artist = ui.Label(win,lang.edit_mode.artist.title,25,175,175,35)
     title_artist.fontsize = 18
     title_artist.fgcolor = 0xFFFFFF
     bg:toback(title_artist)
 
     local box_artist = ui.Entry(win,"",250,175,225,35)
-    box_artist.tooltip = "Artist"
+    box_artist.tooltip = lang.edit_mode.artist.tooltip
     box_artist.fontsize = 12
     box_artist.fontstyle = {["bold"] = false}
     bg:toback(box_artist)
 -----------------------------------------------------------------------------
-    local title_charter = ui.Label(win,"Charter",25,225,175,35)
+    local title_charter = ui.Label(win,lang.edit_mode.charter.title,25,225,175,35)
     title_charter.fontsize = 18
     title_charter.fgcolor = 0xFFFFFF
     bg:toback(title_charter)
 
     local box_charter = ui.Entry(win,"",250,225,225,35)
-    box_charter.tooltip = "Author of the chart"
+    box_charter.tooltip = lang.edit_mode.charter.tooltip
     box_charter.fontsize = 12
     box_charter.fontstyle = {["bold"] = false}
     bg:toback(box_charter)
 -----------------------------------------------------------------------------
-    local title_scene = ui.Label(win,"Scene",25,275,175,35)
+    local title_scene = ui.Label(win,lang.edit_mode.scene,25,275,175,35)
     title_scene.fontsize = 18
     title_scene.fgcolor = 0xFFFFFF
     bg:toback(title_scene)
 
-    local list_scene = ui.Combobox(win,{"scene_01 (Space Station)","scene_02 (Retrocity)","scene_03 (Castle)","scene_04 (Rainy Night)","scene_05 (Candyland)","scene_06 (Oriental)","scene_07 (Let's Groove)","scene_08 (Touhou)","scene_09 (DJMAX)"},
+    local list_scene = ui.Combobox(win,{
+        "scene_01 (Space Station)",
+        "scene_02 (Retrocity)",
+        "scene_03 (Castle)",
+        "scene_04 (Rainy Night)",
+        "scene_05 (Candyland)",
+        "scene_06 (Oriental)",
+        "scene_07 (Let's Groove)",
+        "scene_08 (Touhou)",
+        "scene_09 (DJMAX)"
+    },
     250,275,225,400)
     list_scene.fontsize = 14
     list_scene.fontstyle = {["bold"] = false}
     list_scene.text = "scene_01 (Space Station)"
     bg:toback(list_scene)
 -----------------------------------------------------------------------------
-    local title_bpm = ui.Label(win,"BPM",25,325,175,35)
+    local title_bpm = ui.Label(win,lang.edit_mode.bpm.title,25,325,175,35)
     title_bpm.fontsize = 18
     title_bpm.fgcolor = 0xFFFFFF
     bg:toback(title_bpm)
 
     local box_bpm = ui.Entry(win,"100",250,325,225,35)
-    box_bpm.tooltip = "BPM of the song"
+    box_bpm.tooltip = lang.edit_mode.bpm.tooltip
     box_bpm.fontsize = 18
     box_bpm.fontstyle = {["bold"] = false}
     bg:toback(box_bpm)
 -----------------------------------------------------------------------------
-    local title_diff = ui.Label(win,"Difficulty",25,375,175,35)
+    local title_diff = ui.Label(win,lang.edit_mode.difficulty.title,25,375,175,35)
     title_diff.fontsize = 18
     title_diff.fgcolor = 0xFFFFFF
     bg:toback(title_diff)
 
     local box_diff = ui.Entry(win,"?",250,375,225,35)
-    box_diff.tooltip = "Difficulty of the chart"
+    box_diff.tooltip = lang.edit_mode.difficulty.tooltip
     box_diff.fontsize = 18
     box_diff.fontstyle = {["bold"] = false}
     bg:toback(box_diff)
 -----------------------------------------------------------------------------
-    local title_notespeed = ui.Label(win,"Note Speed",25,425,175,35)
+    local title_notespeed = ui.Label(win,lang.edit_mode.note_speed,25,425,175,35)
     title_notespeed.fontsize = 18
     title_notespeed.fgcolor = 0xFFFFFF
     bg:toback(title_notespeed)
@@ -440,120 +454,120 @@ function edit_mode.run()
     list_notespeed.text = "Speed 3"
     bg:toback(list_notespeed)
 -----------------------------------------------------------------------------
-    local title_demo = ui.Label(win,"Demo",25,475,175,35)
+    local title_demo = ui.Label(win,lang.edit_mode.demo.title,25,475,175,35)
     title_demo.fontsize = 18
     title_demo.fgcolor = 0xFFFFFF
     bg:toback(title_demo)
-    local choose_demo = ui.Button(win,"Click to choose demo",250,475,225,35)
+    local choose_demo = ui.Button(win,lang.edit_mode.demo.button,250,475,225,35)
     choose_demo.fontsize = 10
     choose_demo:loadicon(music_icon)
     bg:toback(choose_demo)
 
     function choose_demo:onClick()
-        selectedFiles.demo = ui.opendialog("Select a Demo music file", false, "MP3 or OGG music|*.mp3;*.ogg")
+        selectedFiles.demo = ui.opendialog(lang.file_select.demo.title, false, lang.file_select.demo.filetype)
         if selectedFiles.demo then
             choose_demo.text = selectedFiles.demo.name
             choose_demo.fontsize = 7
         end
     end
 -----------------------------------------------------------------------------
-    local title_music = ui.Label(win,"Music",25,525,175,35)
+    local title_music = ui.Label(win,lang.edit_mode.music.title,25,525,175,35)
     title_music.fontsize = 18
     title_music.fgcolor = 0xFFFFFF
     bg:toback(title_music)
-    local choose_music = ui.Button(win,"Click to choose music",250,525,225,35)
+    local choose_music = ui.Button(win,lang.edit_mode.music.button,250,525,225,35)
     choose_music.fontsize = 14
     choose_music:loadicon(music_icon)
     bg:toback(choose_music)
 
     function choose_music:onClick()
-        selectedFiles.music = ui.opendialog("Select the main music file", false, "MP3 or OGG music|*.mp3;*.ogg")
+        selectedFiles.music = ui.opendialog(lang.file_select.music.title,false, lang.file_select.music.filetype)
         if selectedFiles.music then
             choose_music.text = selectedFiles.music.name
             choose_music.fontsize = 7
         end
     end
 -----------------------------------------------------------------------------
-    local title_cover = ui.Label(win,"Cover Image",25,575,175,35)
+    local title_cover = ui.Label(win,lang.edit_mode.cover.title,25,575,175,35)
     title_cover.fontsize = 18
     title_cover.fgcolor = 0xFFFFFF
     bg:toback(title_cover)
-    local choose_cover = ui.Button(win,"Click to choose an image",250,575,225,35)
+    local choose_cover = ui.Button(win,lang.edit_mode.cover.button,250,575,225,35)
     choose_cover.fontsize = 14
     choose_cover:loadicon(photo_icon)
     bg:toback(choose_cover)
 
     function choose_cover:onClick()
-        selectedFiles.cover = ui.opendialog("Select a Cover image file", false, "PNG or GIF image|*.png;*.gif")
+        selectedFiles.cover = ui.opendialog(lang.file_select.cover.title,false,lang.file_select.cover.filetype)
         if selectedFiles.cover then
             choose_cover.text = selectedFiles.cover.name
             choose_cover.fontsize = 7
         end
     end
 -----------------------------------------------------------------------------
-    local title_optional_fields = ui.Label(win,"Optional fields",525,25,450,25)
+    local title_optional_fields = ui.Label(win,lang.edit_mode.optional_fields,525,25,450,25)
     title_optional_fields.fontsize = 14
     title_optional_fields.fgcolor = 0xFFFFFF
     bg:toback(title_optional_fields)
  -----------------------------------------------------------------------------
-    local title_chartname_rom = ui.Label(win,"Name romanized",525,75,175,35)
+    local title_chartname_rom = ui.Label(win,lang.edit_mode.name_romanized.title,525,75,175,35)
     title_chartname_rom.fontsize = 14
     title_chartname_rom.fgcolor = 0xFFFFFF
     bg:toback(title_chartname_rom)
 
     local box_chartname_rom = ui.Entry(win,"",750,75,225,35)
-    box_chartname_rom.tooltip = "Name of your chart(romanized)"
+    box_chartname_rom.tooltip = lang.edit_mode.name_romanized.tooltip
     box_chartname_rom.fontsize = 12
     box_chartname_rom.fontstyle = {["bold"] = false}
     bg:toback(box_chartname_rom)
 -----------------------------------------------------------------------------
-    local title_video = ui.Label(win,"Video",525,125,175,35)
+    local title_video = ui.Label(win,lang.edit_mode.video.title,525,125,175,35)
     title_video.fontsize = 18
     title_video.fgcolor = 0xFFFFFF
     bg:toback(title_video)
 
-    local choose_video = ui.Button(win,"Click to choose video",750,125,225,35)
+    local choose_video = ui.Button(win,lang.edit_mode.video.button,750,125,225,35)
     choose_video.fontsize = 14
     choose_video:loadicon(music_icon)
     bg:toback(choose_video)
 
     function choose_video:onClick()
-        selectedFiles.video = ui.opendialog("Select the cinema video file", false, "MP4 video|*.mp4")
+        selectedFiles.video = ui.opendialog(lang.file_select.video.title,false,lang.file_select.video.filetype)
         if selectedFiles.video then
             choose_video.text = selectedFiles.video.name
             choose_video.fontsize = 7
         end
     end
 -----------------------------------------------------------------------------
-    local title_video_opacity = ui.Label(win,"Video Opacity",525,175,175,35)
-    title_video_opacity.fontsize = 18
+    local title_video_opacity = ui.Label(win,lang.edit_mode.video_opacity.title,525,175,175,35)
+    title_video_opacity.fontsize = 13
     title_video_opacity.fgcolor = 0xFFFFFF
     bg:toback(title_video_opacity)
 
     local box_video_opacity = ui.Entry(win,"0.5",750,175,225,35)
-    box_video_opacity.fontsize = 18
+    box_video_opacity.tooltip = lang.edit_mode.video_opacity.tooltip
+    box_video_opacity.fontsize = 14
     box_video_opacity.fontstyle = {["bold"] = false}
     bg:toback(box_video_opacity)
 -----------------------------------------------------------------------------
-    local title_hide_mode = ui.Label(win,"hideBmsMode",525,225,175,35)
-    title_hide_mode.fontsize = 18
+    local title_hide_mode = ui.Label(win,lang.edit_mode.hide_bms_mode,525,225,175,35)
+    title_hide_mode.fontsize = 14
     title_hide_mode.fgcolor = 0xFFFFFF
     bg:toback(title_hide_mode)
 
     local list_hide_mode = ui.Combobox(win,{"CLICK","PRESS","TOGGLE"},750,225,225,200)
-    list_hide_mode.tooltip = "Type for accessing map4"
-    list_hide_mode.fontsize = 16
+    list_hide_mode.fontsize = 14
     list_hide_mode.fontstyle = {["bold"] = false}
     list_hide_mode.text = "CLICK"
     bg:toback(list_hide_mode)
 -----------------------------------------------------------------------------
-    local title_secret_msg = ui.Label(win,"hideBmsMessage",525,275,175,35)
-    title_secret_msg.fontsize = 18
+    local title_secret_msg = ui.Label(win,lang.edit_mode.hide_bms_msg.title,525,275,175,35)
+    title_secret_msg.fontsize = 14
     title_secret_msg.fgcolor = 0xFFFFFF
     bg:toback(title_secret_msg)
 
     local box_secret_msg = ui.Entry(win,"",750,275,225,35)
-    box_secret_msg.tooltip = "Hidden message for map4"
+    box_secret_msg.tooltip = lang.edit_mode.hide_bms_msg.tooltip
     box_secret_msg.fontsize = 12
     box_secret_msg.fontstyle = {["bold"] = false}
     bg:toback(box_secret_msg)
@@ -563,8 +577,8 @@ function edit_mode.run()
     title_gen_bms1.fgcolor = 0xFFFFFF
     bg:toback(title_gen_bms1)
 
-    local check_map1 = ui.Combobox(win,{"Yes","No"},750,325,75,100)
-    check_map1.text = "No"
+    local check_map1 = ui.Combobox(win,{lang.edit_mode.other_maps.add,lang.edit_mode.other_maps.skip},750,325,75,100)
+    check_map1.text = lang.edit_mode.other_maps.skip
     check_map1.fontsize = 14
     check_map1.fontstyle = {["bold"] = false}
     check_map1.fgcolor = 0xFFFFFF
@@ -575,8 +589,8 @@ function edit_mode.run()
     title_gen_bms3.fgcolor = 0xFFFFFF
     bg:toback(title_gen_bms3)
 
-    local check_map3 = ui.Combobox(win,{"Yes","No"},750,375,75,100)
-    check_map3.text = "No"
+    local check_map3 = ui.Combobox(win,{lang.edit_mode.other_maps.add,lang.edit_mode.other_maps.skip},750,375,75,100)
+    check_map3.text = lang.edit_mode.other_maps.skip
     check_map3.fontsize = 14
     check_map3.fontstyle = {["bold"] = false}
     check_map3.fgcolor = 0xFFFFFF
@@ -587,60 +601,59 @@ function edit_mode.run()
     title_gen_bms4.fgcolor = 0xFFFFFF
     bg:toback(title_gen_bms4)
 
-    local check_map4 = ui.Combobox(win,{"Yes","No"},750,425,75,100)
-    check_map4.text = "No"
+    local check_map4 = ui.Combobox(win,{lang.edit_mode.other_maps.add,lang.edit_mode.other_maps.skip},750,425,75,100)
+    check_map4.text = lang.edit_mode.other_maps.skip
     check_map4.fontsize = 14
     check_map4.fontstyle = {["bold"] = false}
     check_map4.fgcolor = 0xFFFFFF
     bg:toback(check_map4)
 -----------------------------------------------------------------------------
-    local title_map1_diff = ui.Label(win,"Diff:",835,325,50,35)
-    title_map1_diff.fontsize = 18
+    local title_map1_diff = ui.Label(win,lang.edit_mode.difficulty.short..":",835,325,50,35)
+    title_map1_diff.fontsize = 14
     title_map1_diff.fgcolor = 0xFFFFFF
     bg:toback(title_map1_diff)
 
     local box_map1_diff = ui.Entry(win,"0",915,325,50,35)
-    box_map1_diff.fontsize = 18
+    box_map1_diff.fontsize = 14
     box_map1_diff.fgcolor = 0xFFFFFF
     box_map1_diff.fontstyle = {["bold"] = false}
     bg:toback(box_map1_diff)
 -----------------------------------------------------------------------------
-    local title_map3_diff = ui.Label(win,"Diff:",835,375,50,35)
-    title_map3_diff.fontsize = 18
+    local title_map3_diff = ui.Label(win,lang.edit_mode.difficulty.short..":",835,375,50,35)
+    title_map3_diff.fontsize = 14
     title_map3_diff.fgcolor = 0xFFFFFF
     bg:toback(title_map3_diff)
 
     local box_map3_diff = ui.Entry(win,"0",915,375,50,35)
-    box_map3_diff.fontsize = 18
+    box_map3_diff.fontsize = 14
     box_map3_diff.fgcolor = 0xFFFFFF
     box_map3_diff.fontstyle = {["bold"] = false}
     bg:toback(box_map3_diff)
 -----------------------------------------------------------------------------
-    local title_map4_diff = ui.Label(win,"Diff:",835,425,50,35)
-    title_map4_diff.fontsize = 18
+    local title_map4_diff = ui.Label(win,lang.edit_mode.difficulty.short..":",835,425,50,35)
+    title_map4_diff.fontsize = 14
     title_map4_diff.fgcolor = 0xFFFFFF
     bg:toback(title_map4_diff)
 
     local box_map4_diff = ui.Entry(win,"0",915,425,50,35)
-    box_map4_diff.fontsize = 18
+    box_map4_diff.fontsize = 14
     box_map4_diff.fgcolor = 0xFFFFFF
     box_map4_diff.fontstyle = {["bold"] = false}
     bg:toback(box_map4_diff)
 -----------------------------------------------------------------------------
-    local title_search_tags = ui.Label(win,"Search Tags",525,475,175,35)
-    title_search_tags.tooltip = "Tags are separated by comma (tag1, tag2, ...)"
-    title_search_tags.fontsize = 18
+    local title_search_tags = ui.Label(win,lang.edit_mode.search_tags.title,525,475,175,35)
+    title_search_tags.fontsize = 14
     title_search_tags.fgcolor = 0xFFFFFF
     bg:toback(title_search_tags)
 
     local box_search_tags = ui.Entry(win,"",750,475,225,35)
+    box_search_tags.tooltip = lang.edit_mode.search_tags.tooltip
     box_search_tags.fontsize = 12
     box_search_tags.fontstyle = {["bold"] = false}
     bg:toback(box_search_tags)
 -----------------------------------------------------------------------------
-    local title_scene_egg = ui.Label(win,"Scene Egg",525,525,175,35)
-    title_scene_egg.tooltip = "Scene easter eggs"
-    title_scene_egg.fontsize = 18
+    local title_scene_egg = ui.Label(win,lang.edit_mode.scene_egg,525,525,175,35)
+    title_scene_egg.fontsize = 14
     title_scene_egg.fgcolor = 0xFFFFFF
     bg:toback(title_scene_egg)
 
@@ -672,14 +685,14 @@ function edit_mode.run()
         list_hide_mode.text = "CLICK"
         box_secret_msg.text = ""
         list_notespeed.selected = list_notespeed.items[3]
-        check_map1.text = "No"
-        check_map3.text = "No"
-        check_map4.text = "No"
+        check_map1.text = lang.edit_mode.other_maps.skip
+        check_map3.text = lang.edit_mode.other_maps.skip
+        check_map4.text = lang.edit_mode.other_maps.skip
         load_button.enabled = true
-        choose_demo.text = "Click to choose demo"
-        choose_music.text = "Click to choose music"
-        choose_cover.text = "Click to choose an image"
-        choose_video.text = "Click to choose video"
+        choose_demo.text = lang.edit_mode.demo.button
+        choose_music.text = lang.edit_mode.music.button
+        choose_cover.text = lang.edit_mode.cover.button
+        choose_video.text = lang.edit_mode.video.button
         choose_demo.enabled = true
         choose_music.enabled = true
         choose_cover.enabled = true
@@ -697,6 +710,7 @@ function edit_mode.run()
         choose_cover.fontsize = 10
         choose_video.fontsize = 10
         box_search_tags.text = ""
+        list_scene_egg.text = "None"
     end
 
     clearFields()
@@ -704,7 +718,7 @@ function edit_mode.run()
     function autofill_fields()
 
         if box_chartname.text ~= "" then
-            if ui.confirm("You selected a new chart folder. Erase all previous fields?","Erase") == "yes" then
+            if ui.confirm(lang.info_msgs.new_chart_folder.desc,lang.info_msgs.new_chart_folder.title) == "yes" then
                 clearFields()
             end
         else clearFields() end
@@ -750,19 +764,19 @@ function edit_mode.run()
         choose_video.enabled = false
 
         if box_map1_diff.text ~= "0" then
-            check_map1.text = "Yes"
+            check_map1.text = lang.edit_mode.other_maps.add
         else
-            check_map1.text = "No"
+            check_map1.text = lang.edit_mode.other_maps.skip
         end
         if box_map3_diff.text ~= "0" then
-            check_map3.text = "Yes"
+            check_map3.text = lang.edit_mode.other_maps.add
         else
-            check_map3.text = "No"
+            check_map3.text = lang.edit_mode.other_maps.skip
         end
         if box_map4_diff.text ~= "0" then
-            check_map4.text = "Yes"
+            check_map4.text = lang.edit_mode.other_maps.add
         else
-            check_map4.text = "No"
+            check_map4.text = lang.edit_mode.other_maps.skip
         end
 
         local chart_searchTags = ""
@@ -791,7 +805,7 @@ function edit_mode.run()
     end
 
     function choose_dir:onClick()
-        local dir = ui.dirdialog("Select chart folder")
+        local dir = ui.dirdialog(lang.edit_mode.select_folder_info)
         if dir then
             targetdir = dir.fullpath
             choose_dir.fontsize = 6
@@ -804,23 +818,23 @@ function edit_mode.run()
         --// Generate chart files
     
         if not targetdir then
-            return false,"You need to select chart folder!"
+            return false,lang.error_msgs.no_chart_folder
         end
         if not selectedFiles.cover then
-            return false,"You need to pick a cover image!"
+            return false,lang.error_msgs.edit_mode.no_cover
         end
         if not selectedFiles.demo then
-            return false,"You need to pick the demo audio!"
+            return false,lang.error_msgs.edit_mode.no_demo
         end
         if not selectedFiles.music then
-            return false,"You need to pick the music audio!"
+            return false,lang.error_msgs.edit_mode.no_music
         end
 
         progressbar.range = {0,5}
         progressbar.position = 0
         progressbar:show()
     
-        win:status("> Checking for foridden characters in info.json...")
+        win:status(lang.status_bar.checking_info_chars)
 
         local searchTags = ""
         local searchTagsSplit = utils.split(box_search_tags.text,",")
@@ -872,91 +886,101 @@ function edit_mode.run()
 
         progressbar:advance(1)
     
-        --// Cover cropping
+        --// Cover cropping (disabled at the moment)
     
-        local need_cropping = ui.confirm("Do you need to crop the Cover image in a circle?","Cover cropping")
+        local need_cropping = "no"--ui.confirm(lang.info_msgs.cover_cropping.desc,lang.info_msgs.cover_cropping.title)
         if need_cropping == "yes" and selectedFiles.cover.extension ~= ".gif" then
-            win:status("> Cropping cover...")
+            win:status(lang.status_bar.cropping_cover)
             sys.cmd(string.format([[""%s\py\cover_cropper.exe" "%s" "%s"]],corepath,selectedFiles.cover.fullpath,targetdir))
         else
             if selectedFiles.cover.extension == ".gif" and need_cropping == "yes" then
-                ui.warn("There is no support for cropping gif covers at the moment. Cover won't be cropped. ","Cannot crop GIF")
+                ui.warn(lang.info_msgs.gif_cover_warning.desc,lang.info_msgs.gif_cover_warning.title)
             end
             local cover = selectedFiles.cover:copy(targetdir.."/cover"..selectedFiles.cover.extension)
             if not cover then
-                return false,"Failed copying cover image!"
+                return false,lang.error_msgs.edit_mode.cover_copy_fail
             end
         end
 
         progressbar:advance(1)
-        win:status("> Loading selected files...")
+        win:status(lang.status_bar.loading_files)
     
         local demo = selectedFiles.demo:copy(targetdir.."/demo"..selectedFiles.demo.extension)
         if not demo then
-            return false,"Failed copying demo!"
+            return false,lang.error_msgs.edit_mode.demo_copy_fail
         end
     
         local music = selectedFiles.music:copy(targetdir.."/music"..selectedFiles.music.extension)
         if not music then
-            return false,"Failed copying music!"
+            return false,lang.error_msgs.edit_mode.music_copy_fail
         end
 
         local video
         if selectedFiles.video then
     
-            win:status("> Loading cinema files...")
+            win:status(lang.status_bar.loading_cinema_files)
     
             video = selectedFiles.video:copy(targetdir.."/video"..selectedFiles.video.extension)
             if not video then
-                return false,"Failed copying cinema video!"
+                return false,lang.error_msgs.edit_mode.video_copy_fail
             end
     
             local video_opacity = tonumber(box_video_opacity.text)
             if not video_opacity then
                 box_video_opacity.text = "0.5"
             end
+
+            os.execute(string.format([[copy "%s/template/other" "%s"]],corepath,targetdir))
     
-            local cinemaTemplate = sys.File(targetdir.."/cinema.json")
-            cinemaTemplate:open("write")
-            cinemaTemplate:write(string.format([[{"file_name": "video.mp4","opacity": %s}]],box_video_opacity.text))
+            local cinemaTemplate = io.open(targetdir.."/cinema.json","r")
+            if not cinemaTemplate then
+                return false,lang.error_msgs.unknown_error
+            end
+            local cinema = cinemaTemplate:read("a")
+            cinemaTemplate:close()
+            cinemaTemplate = io.open(targetdir.."/cinema.json","w")
+            if not cinemaTemplate then
+                return false,lang.error_msgs.unknown_error
+            end
+            cinemaTemplate:write(string.format(cinema,box_video_opacity.text))
             cinemaTemplate:close()
         end
     
-        os.execute('copy "'..corepath..'/template" "'..targetdir..'"')
+        os.execute(string.format([[copy "%s/template/main" "%s"]],corepath,targetdir))
     
         local infoFile = io.open(targetdir.."/info.json","r")
         if not infoFile then
-            return false,"Couldn't find info.json!"
+            return false,lang.error_msgs.edit_mode.info_find_fail
         end
         local info = infoFile:read("a")
         infoFile:close()
         if not info then
-            return false,"Couldn't read info.json!"
+            return false,lang.error_msgs.edit_mode.info_read_fail
         end
 
         progressbar:advance(1)
-        win:status("> Loading template files...")
+        win:status(lang.status_bar.loading_template_files)
     
         info = string.format(info,table.unpack(info_format))
     
         infoFile = io.open(targetdir.."/info.json","w")
         if not infoFile then
-            return false,"Couldn't find info.json!"
+            return false,lang.error_msgs.edit_mode.info_find_fail
         end
         infoFile:write(info)
         infoFile:close()
 
         progressbar:advance(1)
-        win:status("> Loading BMS files...")
+        win:status(lang.status_bar.loading_bms_files)
     
         local bms2File = io.open(targetdir.."/map2.bms","r")
         if not bms2File then
-            return false,"Couldn't find map2.bms!"
+            return false,string.format(lang.error_msgs.edit_mode.file_find_fail,"map2.bms")
         end
         local bmsTemplate = bms2File:read("a")
         bms2File:close()
         if not bmsTemplate then
-            return false,"Couldn't read bms template file!"
+            return false,lang.error_msgs.edit_mode.bms_read_fail
         end
         
         local bms2 = string.format(bmsTemplate,
@@ -972,14 +996,14 @@ function edit_mode.run()
     
         bms2File = io.open(targetdir.."/map2.bms","w")
         if not bms2File then
-            return false,"Couldn't find map2.bms!"
+            return false,string.format(lang.error_msgs.edit_mode.file_find_fail,"map2.bms")
         end
         bms2File:write(bms2)
         bms2File:close()
     
-        --// Bonus bms maps
+        --// Bonus BMS maps
     
-        if check_map1.text == "Yes" then
+        if check_map1.text == "Add" then
             local bms1 = string.format(bmsTemplate,
                 string.sub(list_notespeed.text,7),
                 string.sub(list_scene.text,1,8),
@@ -997,7 +1021,7 @@ function edit_mode.run()
             bms1File:close()
         end
     
-        if check_map3.text == "Yes" then
+        if check_map3.text == "Add" then
             local bms3 = string.format(bmsTemplate,
                 string.sub(list_notespeed.text,7),
                 string.sub(list_scene.text,1,8),
@@ -1015,7 +1039,7 @@ function edit_mode.run()
             bms3File:close()
         end
     
-        if check_map4.text == "Yes" then
+        if check_map4.text == "Add" then
             local bms4 = string.format(bmsTemplate,
                 string.sub(list_notespeed.text,7),
                 string.sub(list_scene.text,1,8),
@@ -1035,7 +1059,7 @@ function edit_mode.run()
 
         progressbar:advance(1)
     
-        return true,"Successfully generated chart files!"
+        return true,lang.info_msgs.chart_generate_success
     end
 
     local button_debounce = false
@@ -1047,18 +1071,18 @@ function edit_mode.run()
         button_debounce = true
 
         local success,msg = chart_pack(win,progressbar)
-        msg = msg or "Unknown error occured"
+        msg = msg or lang.error_msgs.unknown_error
         if success then
-            win:status("> Done!")
-            ui.msg(msg,"Success")
+            win:status(lang.status_bar.done)
+            ui.msg(msg,lang.info_msgs.success)
         else 
-            win:status("> Failed to pack")
-            ui.error(msg,"Failed to pack")
+            win:status(lang.status_bar.packing_fail)
+            ui.error(msg,lang.error_msgs.edit_mode.packing_fail)
         end
 
         progressbar:hide()
         button_debounce = false
-        win:status("> Idle")
+        win:status(lang.status_bar.idle)
     end
 
     function load_button:onClick()
@@ -1066,7 +1090,7 @@ function edit_mode.run()
         button_debounce = true
 
         local success,msg = generate_chart()
-        msg = msg or "Unknown error occured"
+        msg = msg or lang.error_msgs.unknown_error
         if success then
             load_button.enabled = false
             choose_demo.text = "-"
@@ -1077,16 +1101,16 @@ function edit_mode.run()
             choose_music.enabled = false
             choose_cover.enabled = false
             choose_video.enabled = false
-            win:status("> Done!")
-            ui.msg(msg,"Success")
+            win:status(lang.status_bar.done)
+            ui.msg(msg,lang.info_msgs.success)
         else 
-            win:status("> Failed to generate")
-            ui.error(msg,"Failed to generate")
+            win:status(lang.status_bar.generating_fail)
+            ui.error(msg,lang.error_msgs.edit_mode.generating_fail)
         end
 
         progressbar:hide()
         button_debounce = false
-        win:status("> Idle")
+        win:status(lang.status_bar.idle)
     end
 
     function mdm_load_button:onClick()
@@ -1094,17 +1118,17 @@ function edit_mode.run()
         button_debounce = true
 
         local success,msg = mdm_load(win,progressbar)
-        msg = msg or "Unknown error occured"
+        msg = msg or lang.error_msgs.unknown_error
         if success then
-            win:status("> Done!")
-            ui.msg(msg,"Success")
+            win:status(lang.status_bar.done)
+            ui.msg(msg,lang.info_msgs.success)
         else 
-            win:status("> Failed to load")
-            ui.error(msg,"Failed to load")
+            win:status(lang.status_bar.loading_fail)
+            ui.error(msg,lang.error_msgs.edit_mode.loading_fail)
         end
 
         progressbar:hide()
-        win:status("> Idle")
+        win:status(lang.status_bar.idle)
         button_debounce = false
     end
     

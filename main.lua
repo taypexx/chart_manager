@@ -15,6 +15,113 @@ crop_mode = require("modes.crop_mode")
 corepath = sys.currentdir
 targetdir = nil
 settings = nil
+lang = nil
+
+--// Loading settings
+
+local settings_file = io.open(corepath.."/settings.json","r")
+if settings_file then
+    settings = json.parse(settings_file:read("a"))
+    if not settings or settings == {} then
+        settings = {
+            music_offset = "",
+            bms_editor = "",
+            muse_dash = "",
+            lang = ""
+        }
+    end
+    settings_file:close()
+end
+
+function SaveSettings()
+    if settings.muse_dash == "" and settings.bms_editor == "" and settings.music_offset == "" and settings.lang == "" then
+        print("Skipped settings saving, fields are empty")
+        return
+    end
+    settings_file = io.open(corepath.."/settings.json","w")
+    if settings_file then
+        settings_file:write(json.stringify(settings) or {})
+        settings_file:close()
+        print("Saved settings")
+    else print("Couldn't save settings!") end
+end
+
+function SaveAndExit()
+    clearTemp()
+    SaveSettings()
+    sys.exit()
+end
+
+--// Temporary files management
+
+local tempdir = sys.Directory(corepath.."\\temp")
+if not tempdir.exists then
+    tempdir:make()
+end
+
+function clearTemp()
+    for entry in each(tempdir) do
+        local name = tostring(entry)
+        if name then
+            if string.sub(name,1,4) == "File" then
+                entry:remove()
+            elseif string.sub(name,1,9) == "Directory" then
+                entry:removeall()
+            end
+        end
+    end
+end
+
+--// Language selection
+local languageCodes = {
+    [1] = {English = "en"},
+    [2] = {Spanish = "es"},
+    [3] = {German = "de"},
+    [4] = {Russian = "ru"},
+    [5] = {Vientamese = "vi"},
+}
+
+function lang_prompt()
+    local langwin = ui.Window("Language selection","fixed",300,500)
+    langwin:loadicon(corepath.."/icon.ico")
+    langwin:center()
+
+    local langtitle = ui.Label(langwin,"Please select your language:",50,25,250,25)
+    langtitle.fontsize = 12
+
+    local langlist = ui.List(langwin,{},25,75,250,300)
+    langlist.fontsize = 12
+
+    for _,langTable in ipairs(languageCodes) do
+        local k,_ = utils.firstElement(langTable)
+        langlist:add(k)
+    end
+
+    local confirm = ui.Button(langwin,"Confirm",25,425,250,50)
+    confirm.fontsize = 12
+
+    local lang_changed = false
+    confirm.onClick = function()
+        if langlist.selected then
+            settings.lang = utils.tableFindRecursive(languageCodes,langlist.selected.text)
+            lang_changed = true
+        elseif settings.lang == "" or not settings.lang then
+            settings.lang = "en"
+        end
+        ui.remove(langwin)
+    end
+
+    ui.run(langwin):wait()
+
+    return lang_changed
+end
+
+if settings.lang == "" or not settings.lang then
+    lang_prompt()
+end
+
+if settings.lang == "" or not settings.lang then settings.lang = "en" end
+lang = require("lang."..settings.lang)
 
 --// Updater
 
@@ -29,7 +136,7 @@ if version_file then
             
             local available_version
             if response.status ~= 200 then
-                available_version = "v1.0.1"
+                available_version = "v2.2.0"
             else
                 available_version = response.content
             end
@@ -45,7 +152,7 @@ if version_file then
             end
             
             if tonumber(avail_v) > tonumber(current_v) then
-                local result = ui.confirm(string.format("New version of the program is available (v%s). Would you like to download it?",available_version),"New version available")
+                local result = ui.confirm(string.format(lang.new_version.desc,available_version),lang.new_version.title)
                 if result == "yes" then
                     sys.cmd([[explorer "%sreleases/"]],consts.github)
                 end
@@ -54,51 +161,10 @@ if version_file then
     end))
 end
 
---// Loading settings
-
-local settings_file = io.open(corepath.."/settings.json","r")
-if settings_file then
-    settings = json.parse(settings_file:read("a"))
-    if not settings or settings == {} then
-        settings = {
-            music_offset = "",
-            bms_editor = "",
-            muse_dash = ""
-        }
-    end
-    settings_file:close()
-end
-
-function SaveSettings()
-    if settings.muse_dash == "" and settings.bms_editor == "" and settings.music_offset == "" then
-        print("Skipped settings saving, fields are empty")
-        return
-    end
-    settings_file = io.open(corepath.."/settings.json","w")
-    if settings_file then
-        settings_file:write(json.stringify(settings) or {})
-        settings_file:close()
-        print("Saved settings")
-    else print("Couldn't save settings!") end
-end
-
-function clearTemp()
-    for entry in each(sys.Directory(corepath.."\\temp")) do
-        local name = tostring(entry)
-        if name then
-            if string.sub(name,1,4) == "File" then
-                entry:remove()
-            elseif string.sub(name,1,9) == "Directory" then
-                entry:removeall()
-            end
-        end
-    end
-end
-
 --// Muse Dash autodetect path
 
 function prompt_musedash_program()
-    local selected_path = ui.opendialog("Select MuseDash.exe",false,"Executable file (*.exe)|*.exe")
+    local selected_path = ui.opendialog(lang.prompt_musedash.win.title,false,lang.prompt_musedash.win.filetype)
     if selected_path then
         selected_path = selected_path.fullpath
     else selected_path = "" end
@@ -110,7 +176,7 @@ if not settings.muse_dash or settings.muse_dash == "" then
     local default_md_path = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Muse Dash\\MuseDash.exe"
     local md_exe = sys.File(default_md_path)
     if md_exe then
-        local response = ui.confirm("We found a Muse Dash path on your computer at:\n"..default_md_path.."\nIs that a correct path?","MuseDash.exe found")
+        local response = ui.confirm(string.format(lang.prompt_musedash.popup.desc,default_md_path),lang.prompt_musedash.popup.title)
         if response == "yes" then
             settings.muse_dash = default_md_path
         elseif response == "no" then
@@ -133,6 +199,8 @@ photo_icon = sys.File(corepath.."/assets/ico/photo.ico")
 github_icon = sys.File(corepath.."/assets/ico/github.ico")
 md_icon = sys.File(corepath.."/assets/ico/md.ico")
 archive_icon = sys.File(corepath.."/assets/ico/archive.ico")
+heart_icon = sys.File(corepath.."/assets/ico/heart.ico")
+lang_icon = sys.File(corepath.."/assets/ico/lang.ico")
 
 ---------------------------------------
 
@@ -147,21 +215,10 @@ start_win:center()
 local bg = ui.Picture(start_win,corepath.."/assets/welcome.png",0,0)
 bg:center()
 
-local credits = ui.Label(start_win,"Made by @taypexx",580,480,175,25)
-credits.tooltip = "Feel free to contact me in discord! =3"
-credits.fontsize = 10
-credits.fgcolor = 0xffffff
-credits.bgcolor = consts.startbgcolor
-bg:toback(credits)
-
-credits.onClick = function ()
-    sys.cmd(string.format([[explorer "%s"]],consts.yt))
-end
-
-local help_button = ui.Button(start_win,"Help",10,465)
+local help_button = ui.Button(start_win,lang.main.help,10,465)
 help_button.fontsize = 11
 help_button:loadicon(github_icon)
-help_button.width = 80
+help_button.width = 90
 help_button.height = 30
 bg:toback(help_button)
 
@@ -169,10 +226,10 @@ help_button.onClick = function ()
     sys.cmd(string.format([[explorer "%s#chart_manager"]],consts.github))
 end
 
-local discord_button = ui.Button(start_win,"Discord",100,465)
+local discord_button = ui.Button(start_win,lang.main.discord,110,465)
 discord_button.fontsize = 11
 discord_button:loadicon(discord_icon)
-discord_button.width = 80
+discord_button.width = 90
 discord_button.height = 30
 bg:toback(discord_button)
 
@@ -180,10 +237,10 @@ discord_button.onClick = function ()
     sys.cmd(string.format([[explorer "%s"]],consts.discord))
 end
 
-local mdmc_button = ui.Button(start_win,"MDMC",190,465)
+local mdmc_button = ui.Button(start_win,lang.main.mdmc,210,465)
 mdmc_button.fontsize = 11
 mdmc_button:loadicon(melon_icon)
-mdmc_button.width = 80
+mdmc_button.width = 90
 mdmc_button.height = 30
 bg:toback(mdmc_button)
 
@@ -191,9 +248,39 @@ mdmc_button.onClick = function ()
     sys.cmd([[explorer "https://mdmc.moe"]])
 end
 
-local edit_button = ui.Button(start_win,"Create/edit a chart",25,350)
+local credits_button = ui.Button(start_win,lang.welcome_win.credits,310,465)
+credits_button.fontsize = 11
+credits_button:loadicon(heart_icon)
+credits_button.width = 90
+credits_button.height = 30
+bg:toback(credits_button)
+
+credits_button.onClick = function ()
+    local credits_win = ui.Window(lang.welcome_win.credits,"fixed",400,550)
+    credits_win:loadicon(heart_icon)
+    credits_win:center()
+
+    local credits_bg = ui.Picture(credits_win,"assets/credits.png",0,0,credits_win.width,credits_win.height)
+    ui.run(credits_win)
+end
+
+local lang_button = ui.Button(start_win,"Language",410,465)
+lang_button.fontsize = 11
+lang_button:loadicon(lang_icon)
+lang_button.width = 90
+lang_button.height = 30
+bg:toback(lang_button)
+
+lang_button.onClick = function ()
+    if lang_prompt() then
+        ui.msg("Please restart the program for the language to apply.","Restart")
+        ui.remove(start_win) 
+    end
+end
+
+local edit_button = ui.Button(start_win,lang.welcome_win.create_chart,25,350)
 edit_button:loadicon(bms_icon)
-edit_button.fontsize = 18
+edit_button.fontsize = 14
 edit_button.width = 220
 edit_button.height = 40
 bg:toback(edit_button)
@@ -203,9 +290,9 @@ edit_button.onClick = function ()
     edit_mode.run()
 end
 
-local crop_button = ui.Button(start_win,"Crop a chart",250,350)
+local crop_button = ui.Button(start_win,lang.welcome_win.crop_chart,250,350)
 crop_button:loadicon(music_icon)
-crop_button.fontsize = 18
+crop_button.fontsize = 14
 crop_button.width = 200
 crop_button.height = 40
 bg:toback(crop_button)
@@ -215,9 +302,9 @@ crop_button.onClick = function ()
     crop_mode.run()
 end
 
-local download_button = ui.Button(start_win,"Coming soon",455,350,200,50)
+local download_button = ui.Button(start_win,lang.welcome_win.coming_soon,455,350,200,50)
 download_button:loadicon(md_icon)
-download_button.fontsize = 18
+download_button.fontsize = 14
 download_button.width = 220
 download_button.height = 40
 download_button.enabled = false
@@ -234,19 +321,19 @@ function chart_pack(win,progressbar)
     --// Packing
 
     if not targetdir then
-        return false,"You need to select chart folder!"
+        return false,lang.error_msgs.no_chart_folder
     end
 
     progressbar.range = {0,4}
     progressbar.position = 0
     progressbar:show()
 
-    win:status("> Checking required files...")
+    win:status(lang.status_bar.checking_req_files)
 
     local filestotal = {}
     local cover1 = io.open(targetdir.."/cover.png","r")
     local cover2 = io.open(targetdir.."/cover.gif","r")
-    if not (cover1 or cover2) then return false,"You need a cover image to generate MDM chart." end
+    if not (cover1 or cover2) then return false,lang.error_msgs.generate_mdm.no_cover end
     if cover1 then
         filestotal.cover = "png"
         cover1:close()
@@ -257,7 +344,7 @@ function chart_pack(win,progressbar)
     end
 
     local infoFile = io.open(targetdir.."/info.json","r")
-    if not infoFile then return false,"You need an info.json file to generate MDM chart." end
+    if not infoFile then return false,lang.error_msgs.generate_mdm.no_info end
 
     local music1 = io.open(targetdir.."/music.mp3","r")
     local music2 = io.open(targetdir.."/music.ogg","r")
@@ -268,7 +355,7 @@ function chart_pack(win,progressbar)
         if music2 then
             music2:close()
         end
-        return false,"You need a music file to generate MDM chart."
+        return false,lang.error_msgs.generate_mdm.no_music
     end
     if music1 then
         music1:close()
@@ -282,7 +369,7 @@ function chart_pack(win,progressbar)
     local demo1 = io.open(targetdir.."/demo.mp3","r")
     local demo2 = io.open(targetdir.."/demo.ogg","r")
     if not (demo1 or demo2) then
-        ui.warn("Missing demo file for chart.","Warning")
+        ui.warn(lang.error_msgs.generate_mdm.no_demo.desc,lang.error_msgs.generate_mdm.no_demo.title)
     end
     if demo1 then
         demo1:close()
@@ -311,7 +398,7 @@ function chart_pack(win,progressbar)
         if map4 then
             map4:close()
         end
-        return false,"You need at least 1 bms map to generate MDM chart."
+        return false,lang.error_msgs.generate_mdm.no_map
     end
     filestotal.map = {}
     if map1 then
@@ -332,7 +419,7 @@ function chart_pack(win,progressbar)
     end
 
     progressbar:advance(1)
-    win:status("> Checking for dialog files...")
+    win:status(lang.status_bar.checking_dialog_files)
 
     local map1_talk = io.open(targetdir.."/map1.talk","r")
     local map2_talk = io.open(targetdir.."/map2.talk","r")
@@ -358,7 +445,7 @@ function chart_pack(win,progressbar)
     end
 
     progressbar:advance(1)
-    win:status("> Checking for cinema files...")
+    win:status(lang.status_bar.checking_cinema_files)
 
     --// Cinema files
 
@@ -374,7 +461,7 @@ function chart_pack(win,progressbar)
     end
 
     progressbar:advance(1)
-    win:status("> Compressing into MDM...")
+    win:status(lang.status_bar.compressing_mdm)
     
     local contents = infoFile:read("a")
     local info = json.decode(contents)
@@ -424,7 +511,7 @@ function chart_pack(win,progressbar)
 
     progressbar:advance(1)
     
-    return true,"Successfully packed chart into MDM!"
+    return true,lang.info_msgs.chart_pack_success
 end
 
 function check_for_mdm()
@@ -443,15 +530,15 @@ function mdm_load(win,progressbar)
     --// Loading to Muse Dash
 
     if not targetdir then
-        return false,"You need to select chart folder!"
+        return false,lang.error_msgs.no_chart_folder
     end
 
     if not settings.muse_dash or settings.muse_dash == "" then
-        local response = ui.confirm("Muse Dash path wasn't selected. Do you want to do it right now?","No Muse Dash path")
+        local response = ui.confirm(lang.info_msgs.no_musedash_path.desc,lang.info_msgs.no_musedash_path.title)
         if response == "yes" then
             prompt_musedash_program()
         elseif response == "no" then
-            return false,"You need Muse Dash path to save MDMs!"
+            return false,lang.error_msgs.load_mdm.no_musedash_path
         end
     end
 
@@ -459,24 +546,24 @@ function mdm_load(win,progressbar)
     progressbar.position = 0
     progressbar:show()
 
-    win:status("> Checking for MDM...")
+    win:status(lang.status_bar.checking_mdm)
 
     local has_mdm = check_for_mdm()
     if not has_mdm then
-        local result = ui.confirm("There is no MDM file in the chart folder. Do you want to pack files?","No MDM found")
+        local result = ui.confirm(lang.info_msgs.no_mdm.desc,lang.info_msgs.no_mdm.title)
         if result == "yes" then
             local success,msg = chart_pack(win,progressbar)
             progressbar:advance(1)
             if not success then return false,msg end
-            ui.msg(msg,"Success")
+            ui.msg(msg,lang.info_msgs.success)
             has_mdm = check_for_mdm()
             if not has_mdm then return false end
-        else return false,"You have to pack files in order to save them" end
+        else return false,lang.error_msgs.load_mdm.cancel_packing end
     end
 
     progressbar:advance(1)
 
-    win:status("> Loading to Muse Dash charts path...")
+    win:status(lang.status_bar.loading_to_cam)
 
     local split_path = utils.split(settings.muse_dash,"\\")
     local charts_path = string.reverse(string.sub(string.reverse(settings.muse_dash),string.len(split_path[#split_path])+1)).."Custom_Albums"
@@ -485,11 +572,11 @@ function mdm_load(win,progressbar)
 
     progressbar:advance(1)
     
-    return true,"Successfully saved chart to Muse Dash!"
+    return true,lang.info_msgs.chart_load_success
 end
 
 ---------------------------------------
 
 ui.run(start_win)
 waitall()
-SaveSettings()
+SaveAndExit()
