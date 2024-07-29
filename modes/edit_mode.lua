@@ -330,20 +330,18 @@ function edit_mode.run()
     local load_button = ui.Button(win,lang.edit_mode.generate_files, 25,650)
     load_button:loadicon(bms_icon)
     load_button.fontsize = 14
-    load_button.width = 185
-    load_button.size = 35
+    load_button:autosize()
 
-    local pack_button = ui.Button(win,lang.edit_mode.pack_files, 225,650)
+    local pack_button = ui.Button(win,lang.edit_mode.pack_files,load_button.x+load_button.width+15,650)
     pack_button:loadicon(archive_icon)
     pack_button.fontsize = 14
-    pack_button.width = 175
-    pack_button.size = 35
+    load_button:autosize()
 
-    local mdm_load_button = ui.Button(win,lang.edit_mode.load_mdm, 415,650)
+    local mdm_load_button = ui.Button(win,lang.edit_mode.load_mdm,pack_button.x+pack_button.width+15,650)
     mdm_load_button:loadicon(md_icon)
     mdm_load_button.fontsize = 14
-    mdm_load_button.width = 230
-    mdm_load_button.size = 35
+    load_button:autosize()
+
     bg:toback(load_button)
     bg:toback(pack_button)
     bg:toback(mdm_load_button)
@@ -551,7 +549,7 @@ function edit_mode.run()
     bg:toback(box_video_opacity)
 -----------------------------------------------------------------------------
     local title_hide_mode = ui.Label(win,lang.edit_mode.hide_bms_mode,525,225,175,35)
-    title_hide_mode.fontsize = 14
+    title_hide_mode.fontsize = 12
     title_hide_mode.fgcolor = 0xFFFFFF
     bg:toback(title_hide_mode)
 
@@ -562,7 +560,7 @@ function edit_mode.run()
     bg:toback(list_hide_mode)
 -----------------------------------------------------------------------------
     local title_secret_msg = ui.Label(win,lang.edit_mode.hide_bms_msg.title,525,275,175,35)
-    title_secret_msg.fontsize = 14
+    title_secret_msg.fontsize = 12
     title_secret_msg.fgcolor = 0xFFFFFF
     bg:toback(title_secret_msg)
 

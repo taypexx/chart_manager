@@ -159,8 +159,7 @@ function crop_mode.run()
     local button_select = ui.Button(win,lang.crop_mode.select_chart_file,225,25)
     button_select:loadicon(melon_icon)
     button_select.fontsize = 14
-    button_select.width = 175
-    button_select.height = 35
+    button_select:autosize()
     bg:toback(button_select)
     button_select.onClick = function ()
         selected_chart = ui.opendialog(lang.crop_mode.select_chart_win.title, false, lang.crop_mode.select_chart_win.filetype)
@@ -178,13 +177,103 @@ function crop_mode.run()
     title_maps.fgcolor = 0xFFFFFF
     bg:toback(title_maps)
 
-    local button_save = ui.Button(win,lang.crop_mode.save_to_musedash,215,400)
+    local button_save
+
+    local button_crop = ui.Button(win,lang.crop_mode.choose_map,25,400)
+    button_crop:loadicon(bms_icon)
+    button_crop.fontsize = 14
+    button_crop:autosize()
+    button_crop.enabled = false
+    bg:toback(button_crop)
+    button_crop.onClick = function ()
+        if buttondb then return end
+        if settings.bms_editor == "" or not settings.bms_editor then
+            local result = ui.confirm(lang.info_msgs.no_bms_editor.desc,lang.info_msgs.no_bms_editor.title)
+            if result == "yes" then
+                local selected = select_BMS_programm()
+                if not selected then return end
+            else return end
+        end
+
+        if not settings.muse_dash or settings.muse_dash == "" then
+            local response = ui.confirm(lang.info_msgs.no_musedash_path.desc,lang.info_msgs.no_musedash_path.title)
+            if response == "yes" then
+                local selected = prompt_musedash_program()
+                if selected == "" then return end
+            else return end
+        end
+
+        buttondb = true
+        clearTemp()
+
+        local chart_copy = selected_chart:copy(targetdir.."\\TEMP.zip")
+        if not chart_copy then
+            buttondb = false
+            ui.error(lang.error_msgs.crop_mode.chart_copy_fail,lang.error_msgs.error)
+            return
+        end
+
+        local arch = compression.Zip(chart_copy)
+        if not arch then
+            buttondb = false
+            ui.error(lang.error_msgs.crop_mode.chart_open_fail,lang.error_msgs.error)
+            return
+        end
+
+        local extracted = arch:extractall(targetdir)
+        if not extracted then
+            arch:close()
+            buttondb = false
+            ui.error(lang.error_msgs.crop_mode.chart_extract_fail,lang.error_msgs.error)
+            return
+        end
+
+        arch:close()
+        chart_copy:remove()
+
+        local bms_path = string.format("%s\\%s.bms",targetdir,list_maps.text)
+        local bms_map = sys.File(bms_path)
+        if not bms_map.exists then
+            buttondb = false
+            ui.error(string.format(lang.error_msgs.crop_mode.no_bms,list_maps.text),lang.error_msgs.error)
+            return
+        end
+
+        bms_map:open("read")
+        local i,lastline = 0,""
+        local write_lines = {}
+        for line in bms_map.lines do
+            i = i+1
+            if (string.sub(lastline,1,4) == "#WAV" or string.sub(lastline,1,7) == "#SCROLL") and line == "" then
+                write_lines[i] = string.format("#WAV%s Crop object",consts.bms_crop_value)
+            else
+                write_lines[i] = line
+            end
+            lastline = line
+        end
+        bms_map:close()
+        
+        bms_map:open("write")
+        for _,line in pairs(write_lines) do
+            bms_map:writeln(line)
+        end
+
+        bms_map:close()
+
+        ui.info(string.format(lang.crop_mode.cropping_info.desc,consts.bms_crop_value),lang.crop_mode.cropping_info.title)
+
+        sys.cmd(string.format('""%s" "%s"',settings.bms_editor,bms_path))
+
+        button_save.enabled = true
+        buttondb = false
+    end
+
+    button_save = ui.Button(win,lang.crop_mode.save_to_musedash,button_crop.x+button_crop.width+15,400)
     button_save.fontsize = 14
     button_save:loadicon(md_icon)
-    button_save.width = 185
-    button_save.height = 35
-    bg:toback(button_save)
+    button_save:autosize()
     button_save.enabled = false
+    bg:toback(button_save)
     button_save.onClick = function ()
         if buttondb then return end
         buttondb = true
@@ -394,96 +483,6 @@ function crop_mode.run()
         ui.msg(lang.info_msgs.chart_crop_success,lang.info_msgs.success)
         win:status("> Idle")
         clearTemp()
-        buttondb = false
-    end
-
-    local button_crop = ui.Button(win,lang.crop_mode.choose_map,25,400)
-    button_crop:loadicon(bms_icon)
-    button_crop.fontsize = 14
-    button_crop.width = 175
-    button_crop.height = 35
-    bg:toback(button_crop)
-    button_crop.enabled = false
-    button_crop.onClick = function ()
-        if buttondb then return end
-        if settings.bms_editor == "" or not settings.bms_editor then
-            local result = ui.confirm(lang.info_msgs.no_bms_editor.desc,lang.info_msgs.no_bms_editor.title)
-            if result == "yes" then
-                local selected = select_BMS_programm()
-                if not selected then return end
-            else return end
-        end
-
-        if not settings.muse_dash or settings.muse_dash == "" then
-            local response = ui.confirm(lang.info_msgs.no_musedash_path.desc,lang.info_msgs.no_musedash_path.title)
-            if response == "yes" then
-                local selected = prompt_musedash_program()
-                if selected == "" then return end
-            else return end
-        end
-
-        buttondb = true
-        clearTemp()
-
-        local chart_copy = selected_chart:copy(targetdir.."\\TEMP.zip")
-        if not chart_copy then
-            buttondb = false
-            ui.error(lang.error_msgs.crop_mode.chart_copy_fail,lang.error_msgs.error)
-            return
-        end
-
-        local arch = compression.Zip(chart_copy)
-        if not arch then
-            buttondb = false
-            ui.error(lang.error_msgs.crop_mode.chart_open_fail,lang.error_msgs.error)
-            return
-        end
-
-        local extracted = arch:extractall(targetdir)
-        if not extracted then
-            arch:close()
-            buttondb = false
-            ui.error(lang.error_msgs.crop_mode.chart_extract_fail,lang.error_msgs.error)
-            return
-        end
-
-        arch:close()
-        chart_copy:remove()
-
-        local bms_path = string.format("%s\\%s.bms",targetdir,list_maps.text)
-        local bms_map = sys.File(bms_path)
-        if not bms_map.exists then
-            buttondb = false
-            ui.error(string.format(lang.error_msgs.crop_mode.no_bms,list_maps.text),lang.error_msgs.error)
-            return
-        end
-
-        bms_map:open("read")
-        local i,lastline = 0,""
-        local write_lines = {}
-        for line in bms_map.lines do
-            i = i+1
-            if (string.sub(lastline,1,4) == "#WAV" or string.sub(lastline,1,7) == "#SCROLL") and line == "" then
-                write_lines[i] = string.format("#WAV%s Crop object",consts.bms_crop_value)
-            else
-                write_lines[i] = line
-            end
-            lastline = line
-        end
-        bms_map:close()
-        
-        bms_map:open("write")
-        for i,line in pairs(write_lines) do
-            bms_map:writeln(line)
-        end
-
-        bms_map:close()
-
-        ui.info(string.format(lang.crop_mode.cropping_info.desc,consts.bms_crop_value),lang.crop_mode.cropping_info.title)
-
-        sys.cmd(string.format('""%s" "%s"',settings.bms_editor,bms_path))
-
-        button_save.enabled = true
         buttondb = false
     end
 
