@@ -71,8 +71,11 @@ Available releases are here:
 If you want to build it yourself, you will need LuaRT.
 Select [main.lua](https://github.com/taypexx/chart_manager/blob/main/main.lua) as the main file of the project.
 
+## Credits
+
+![credits](https://github.com/user-attachments/assets/f13fa36c-c2ad-4694-9eec-d8f46781cef0)
+
 ## Links
 
 * [MDMC discord](https://discord.gg/mdmc/)
 * [MDMC website](https://mdmc.moe/)
-* My Discord: `@taypexx`
