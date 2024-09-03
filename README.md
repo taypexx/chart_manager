@@ -77,5 +77,6 @@ Select [main.lua](https://github.com/taypexx/chart_manager/blob/main/main.lua) a
 
 ## Links
 
-* [MDMC discord](https://discord.gg/mdmc/)
-* [MDMC website](https://mdmc.moe/)
+* [Download MDBMSC](https://cdn.discordapp.com/attachments/1203883928654581760/1203883930151813130/MDBMSC_V2.9.zip?ex=66d7c048&is=66d66ec8&hm=7e5133eabaa0759f75196e2396b75fb0b3ee2ffcf38b3b8af250d025d10dc941&)
+* [MDMC Discord](https://discord.gg/mdmc/)
+* [MDMC Website](https://mdmc.moe/)
