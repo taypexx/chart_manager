@@ -2,7 +2,7 @@ return {
 
     startbgcolor = 0x2f2f2f,
     creditsbgcolor = 0x292037,
-    bgcolor = 0x37262c,
+    bgcolor = 0x221d38,
     font = "Calibri",
     github = "https://github.com/taypexx/chart_manager/",
     yt = "https://youtube.com/channel/UCrmB0yne92J9C042I8-Qy9g/",

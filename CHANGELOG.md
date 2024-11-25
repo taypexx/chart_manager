@@ -1,10 +1,5 @@
-# v2.2.0
+# v2.3.0
 
-Added support for languages(English, Spanish, German, Russian, Vietnamese)
-Added credits tab
-Changed crop object to be 3R
-Better temp files organization
-Fixed file encoding for cinema.json
-Fixed cropping mode bug
-Fixed some typos
-Other bug fixes
+Updated BMS template (added 10 WAVs)
+Updated theme
+Fixed a bug when the program couldn't generate bms maps when using any other languages except from english

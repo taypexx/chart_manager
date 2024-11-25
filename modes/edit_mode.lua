@@ -1001,7 +1001,7 @@ function edit_mode.run()
     
         --// Bonus BMS maps
     
-        if check_map1.text == "Add" then
+        if check_map1.text == lang.edit_mode.other_maps.add then
             local bms1 = string.format(bmsTemplate,
                 string.sub(list_notespeed.text,7),
                 string.sub(list_scene.text,1,8),
@@ -1019,7 +1019,7 @@ function edit_mode.run()
             bms1File:close()
         end
     
-        if check_map3.text == "Add" then
+        if check_map3.text == lang.edit_mode.other_maps.add then
             local bms3 = string.format(bmsTemplate,
                 string.sub(list_notespeed.text,7),
                 string.sub(list_scene.text,1,8),
@@ -1037,7 +1037,7 @@ function edit_mode.run()
             bms3File:close()
         end
     
-        if check_map4.text == "Add" then
+        if check_map4.text == lang.edit_mode.other_maps.add then
             local bms4 = string.format(bmsTemplate,
                 string.sub(list_notespeed.text,7),
                 string.sub(list_scene.text,1,8),
