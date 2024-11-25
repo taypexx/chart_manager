@@ -212,6 +212,8 @@ start_win.font = consts.font
 start_win.fontstyle = {["bold"] = true}
 start_win:center()
 
+ui.theme = "light"
+
 local bg = ui.Picture(start_win,corepath.."/assets/welcome.png",0,0)
 bg:center()
 

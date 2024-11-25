@@ -655,7 +655,7 @@ function edit_mode.run()
     title_scene_egg.fgcolor = 0xFFFFFF
     bg:toback(title_scene_egg)
 
-    local list_scene_egg = ui.Combobox(win,{"None","RinLen","Miku","Christmas","BadApple","Queen","Arknights","Cytus","Touhou","Wacca"},750,526,225,35)
+    local list_scene_egg = ui.Combobox(win,{"None","RinLen","Miku","Christmas","BadApple","Queen","Arknights","Cytus","Touhou","Wacca"},750,526,225,150)
     list_scene_egg.text = "None"
     list_scene_egg.fontsize = 14
     list_scene_egg.fontstyle = {["bold"] = false}
